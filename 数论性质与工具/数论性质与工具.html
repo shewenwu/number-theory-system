@@ -1,0 +1,1404 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数论性质与工具</title>
+    <script>
+        window.MathJax = {
+            tex: { 
+                inlineMath: [['$', '$'], ['\\(', '\\)']], 
+                displayMath: [['$$', '$$'], ['\\[', '\\]']], 
+                processEscapes: true 
+            },
+            options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] },
+            startup: { typeset: false }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        /* ================= 基础与公共样式 ================= */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, 'Microsoft YaHei'; background-color: #f4f7f6; color: #333; line-height: 1.8; }
+        /* 新增的返回主页按钮样式 */
+        .btn-back {
+            background-color: transparent;
+            color: #ecf0f1 !important;
+            border: 1px solid #ecf0f1 !important;
+            margin-left: 20px;
+        }
+        .btn-back:hover {
+            background-color: #ecf0f1;
+            color: #2c3e50 !important;
+        }        
+        /* 顶部导航栏 (橙黄主题) */
+        header { background-color: #2c3e50; padding: 1rem 0; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        nav a { display: inline-block; text-decoration: none; border: 2px solid transparent; color: #bdc3c7; padding: 10px 25px; margin: 0 10px; font-size: 16px; border-radius: 25px; transition: all 0.3s; font-weight: bold; }
+        nav a:hover { color: #ecf0f1; }
+        nav a.active-tools { background-color: #f39c12; color: #fff; cursor: default; pointer-events: none; }
+
+        .container { max-width: 1200px; margin: 3rem auto; padding: 0 1rem; }
+        
+        /* 大标题 */
+        .section-title { text-align: center; margin-bottom: 2.5rem; color: #2c3e50; font-size: 2rem; display: inline-block; left: 50%; position: relative; transform: translateX(-50%); }
+        .section-title::after { content: ''; display: block; width: 60%; height: 4px; margin: 10px auto 0; border-radius: 2px; background-color: #f39c12; }
+
+        /* ================= 手风琴样式 ================= */
+        .accordion { display: flex; flex-direction: column; gap: 15px; }
+        .acc-item { background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 3px 10px rgba(0,0,0,0.04); }
+        .acc-header { background: #fff; padding: 20px 25px; font-size: 1.15rem; font-weight: bold; color: #2c3e50; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.3s; border-left: 5px solid transparent; }
+        .acc-header:hover { background: #fdfbf7; border-left-color: #f39c12; }
+        .acc-header.active { background: #fffdf8; border-left-color: #f39c12; color: #d35400; }
+        .acc-header::after { content: '+'; font-size: 22px; color: #95a5a6; }
+        .acc-header.active::after { content: '−'; color: #f39c12; }
+        
+        .acc-content { display: none; padding: 0 25px 25px 25px; border-top: 1px solid #ecf0f1; }
+        .acc-content.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ================= 内部元素样式 ================= */
+        .sub-title { font-size: 1.15rem; color: #d35400; margin: 25px 0 10px 0; padding-left: 10px; border-left: 4px solid #d35400; font-weight: bold;}
+        .content-box { background: #fdfbf7; border-left: 4px solid #f39c12; padding: 20px; border-radius: 6px; margin-top: 15px; margin-bottom: 20px; }
+        .exercise-box { background: #fffcf5; border: 1px solid #fdebd0; border-left: 4px solid #f39c12; padding: 20px; border-radius: 6px; margin-top: 20px; }
+        .exercise-box ol { padding-left: 20px; margin-top: 10px; }
+        .exercise-box li { margin-bottom: 20px; font-weight: 500; }
+        
+        /* 折叠面板 (用于隐藏证明) */
+        details { background: #fff; border: 1px dashed #bdc3c7; border-radius: 6px; padding: 10px 15px; margin-top: 10px; cursor: pointer; transition: all 0.2s; }
+        details:hover { border-color: #f39c12; background: #fffdf8; }
+        summary { font-weight: bold; color: #e67e22; font-size: 0.95rem; outline: none; }
+        details[open] summary { margin-bottom: 10px; color: #d35400; border-bottom: 1px dashed #ecf0f1; padding-bottom: 5px; }
+        .solution-text { font-size: 0.95rem; color: #34495e; padding-left: 10px; border-left: 3px solid #ecf0f1; }
+        
+        .math-display { text-align: center; margin: 10px 0; font-size: 1.1rem; overflow-x: auto; }
+        
+        /* 图像居中容器 */
+        .graph-container { display: flex; justify-content: center; align-items: center; margin: 20px 0; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #eee; flex-wrap: wrap; gap: 20px; }
+
+        /* 选择题选项排版 */
+        .options-container { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 20px; 
+            margin-top: 8px; 
+            margin-left: 20px; 
+            color: #555; 
+            font-weight: normal;
+        }
+
+        /* 核心公理高亮框 */
+        .axiom-box {
+            background: #fffdf8;
+            border: 2px solid #f39c12;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(243, 156, 18, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <header>
+<nav>
+    <a href="#" class="active-tools">数论性质与工具</a>
+    <a href="../index.html" style="display:inline-block; text-decoration:none; border:1px solid #ecf0f1; color:#bdc3c7; padding:8px 20px; margin:0 10px; border-radius:25px; font-weight:bold;">🏠 返回主页</a>
+</nav>
+    </header>
+
+    <div class="container">
+        <h2 class="section-title">数论性质与工具</h2>
+
+        <div class="accordion">
+            
+            <!-- 1. 完全平方数的性质 -->
+            <div class="acc-item">
+                <div class="acc-header" onclick="toggleAccordion(this)">1. 基础性质：完全平方数的性质</div>
+                <div class="acc-content">
+                    <div class="sub-title">一、尾数规律（个位数限制）</div>
+                    <p>任何整数的平方，其个位数字（模 10）只可能是：<b>0, 1, 4, 5, 6, 9</b>。<br>
+                    <b>不可能</b>是：2, 3, 7, 8。<br>
+                    <em>应用：如果题目中要求解方程，算出某个平方数的个位是 3，可以直接断定该方程无整数解。</em></p>
+
+                    <div class="sub-title">二、模 4 与模 8 的规律（基础必会）</div>
+                    <div class="content-box" style="border-left-color: #f39c12;">
+                        <p><b>1. 模 4 余 0 或 1</b><br>
+                        对于任意整数 \(n\)：<br>
+                        - 若 \(n\) 是偶数，设 \(n=2k\)，则 \(n^2 = 4k^2 \equiv 0 \pmod 4\)。<br>
+                        - 若 \(n\) 是奇数，设 \(n=2k+1\)，则 \(n^2 = 4k^2+4k+1 = 4k(k+1)+1 \equiv 1 \pmod 4\)。<br>
+                        <b>结论：</b>平方数模 4 的余数只能是 <b>0 或 1</b>。</p>
+                        
+                        <p style="margin-top: 10px;"><b>2. 模 8 余 0, 1 或 4</b><br>
+                        对于任意整数 \(n\)：<br>
+                        - 若 \(n=4k\)，\(n^2 = 16k^2 \equiv 0 \pmod 8\)。<br>
+                        - 若 \(n=4k+1\)，\(n^2 = 16k^2+8k+1 \equiv 1 \pmod 8\)。<br>
+                        - 若 \(n=4k+2\)，\(n^2 = 16k^2+16k+4 \equiv 4 \pmod 8\)。<br>
+                        - 若 \(n=4k+3\)，\(n^2 = 16k^2+24k+9 \equiv 1 \pmod 8\)。<br>
+                        <b>结论：</b>平方数模 8 的余数只能是 <b>0, 1 或 4</b>。</p>
+                    </div>
+
+                    <div class="sub-title">三、模 3、模 5 以及模 9 的联动规律（进阶必杀）</div>
+                    <div class="content-box" style="border-left-color: #d35400;">
+                        <p><b>1. 模 3 余 0 或 1</b><br>
+                        对任意整数 \(n\)，模 3 只能余 0, 1, 2。<br>
+                        - 若 \(n \equiv 0\)，则 \(n^2 \equiv 0\)；<br>
+                        - 若 \(n \equiv 1\) 或 \(2\)，则 \(n^2 \equiv 1\) 或 \(4 \equiv 1\)。<br>
+                        <b>结论：平方数模 3 只能余 0 或 1。</b></p>
+
+                        <p style="margin-top: 10px;"><b>2. 模 5 余 0, 1 或 4</b><br>
+                        计算 \(0^2\) 到 \(4^2\) 模 5：分别是 0, 1, 4, 9(余4), 16(余1)。<br>
+                        <b>结论：平方数模 5 只能余 0, 1 或 4。</b></p>
+
+                        <p style="margin-top: 10px; color: #d35400;"><b>3. 【核心定理】模 3 与模 9 的绝对联动</b><br>
+                        如果一个完全平方数模 3 余 0，那么它<b>必定模 9 余 0</b>。</p>
+                        <details><summary>点击查看证明</summary>
+                            <div class="solution-text">
+                                若 \(n^2 \equiv 0 \pmod 3\)，说明 \(3 \mid n^2\)。<br>
+                                因为 3 是素数，由素数的性质可知，必定有 \(3 \mid n\)。<br>
+                                既然 \(3 \mid n\)，我们可以设 \(n = 3k\)。<br>
+                                那么 \(n^2 = (3k)^2 = 9k^2\)。<br>
+                                显然，此时 \(n^2\) 能被 9 整除，即 \(n^2 \equiv 0 \pmod 9\)。证毕。
+                            </div>
+                        </details>
+                        <p style="font-size: 0.9rem; color: #666; margin-top: 5px;"><em>注：同理可推广，若 \(p\) 为素数，且 \(p \mid n^2\)，则必定有 \(p^2 \mid n^2\)。</em></p>
+                    </div>
+
+                    <div class="sub-title">四、实战习题</div>
+                    <div class="exercise-box">
+                        <ol>
+                            <li>证明：方程 \(x^2 + y^2 = 2023\) 没有整数解。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    考虑模 4 的余数。任何平方数模 4 只能余 0 或 1。<br>
+                                    所以 \(x^2 + y^2\) 模 4 的余数只能是 \(0+0=0\)，\(0+1=1\)，\(1+0=1\)，\(1+1=2\)。<br>
+                                    因此 \(x^2 + y^2\) 模 4 绝不可能是 3。<br>
+                                    然而，\(2023 \equiv 3 \pmod 4\)。<br>
+                                    左边模 4 不可能余 3，右边余 3，矛盾。所以原方程无整数解。
+                                </div></details>
+                            </li>
+                            <li>证明：方程 \(x^2 + 3y^2 = 2024\) 没有整数解。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    考虑模 3 的余数。平方数模 3 只能余 0 或 1。<br>
+                                    所以 \(x^2 \pmod 3\) 只能是 0 或 1，而 \(3y^2 \equiv 0 \pmod 3\) 恒成立。<br>
+                                    因此 \(x^2 + 3y^2\) 模 3 的余数只能是 0 或 1。<br>
+                                    然而，\(2024 \equiv 2 \pmod 3\)。<br>
+                                    左边模 3 不可能余 2，右边余 2，矛盾。所以原方程无整数解。
+                                </div></details>
+                            </li>
+                            <li>求方程 \(a^2 + b^2 + c^2 = 2005\) 的正整数解。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    <b>分析过程（模5结合恒等式法）：</b><br>
+                                    ① 平方数模 5 余 0, 1, 4。因为 \(2005 \equiv 0 \pmod 5\)，要使三个平方数和模 5 为 0，必然存在至少一个数能被 5 整除。<br>
+                                    ② 不妨设 \(a = 5k\)，代入得 \(b^2 + c^2 = 5(401 - 5k^2)\)。由于 \(a \le 44\)（因为 \(45^2 > 2005\)），所以 \(k \le 8\)。<br>
+                                    ③ 利用两平方和恒等式 \((m^2+n^2)(p^2+q^2) = (mp+nq)^2 + (mq-np)^2\)。因为 \(5 = 1^2+2^2\)，我们只需检验 \(k=1\) 到 \(8\)：
+                                    <ul>
+                                        <li>\(k=1\)：\(401-5=396\) 含因数 11，不可写为两平方和，无解。</li>
+                                        <li>\(k=2\)：\(401-20=381\) 含因数 3，无解。</li>
+                                        <li>\(k=3\)：\(401-45=356 = 4 \times 89 = 4(5^2+8^2) = 10^2+16^2\)。展开得 \((b,c) = (42,4)\) 或 \((36,22)\)。对应 \(a=15\)。</li>
+                                        <li>\(k=4, 5\)：无解。</li>
+                                        <li>\(k=6\)：\(401-180=221 = 13 \times 17 = (3^2+2^2)(4^2+1^2)\)。展开得 \((b,c) = (31,12), (32,9), (24,23), (33,4)\)。对应 \(a=30\)。</li>
+                                        <li>\(k=7\)：无解。</li>
+                                        <li>\(k=8\)：\(401-320=81 = 9^2+0^2\)。展开得 \((b,c) = (18,9)\)。对应 \(a=40\)。</li>
+                                    </ul>
+                                    ④ 汇总可得共有 <b>7</b> 组解：<br>
+                                    \[
+(4,15,42), (15,22,36), (12,30,31), (9,30,32), (23,24,30), (4,30,33), (9,18,40)
+\]
+                                </div></details>
+                            </li>
+                            <li>【对比题】求方程 \(a^2 + b^2 + c^2 = 2004\) 的正整数解。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    <b>分析过程（模4降维 + 模3排除法）：</b><br>
+                                    ① <b>模4降维</b>：因为 \(2004 \equiv 0 \pmod 4\)，而平方数模 4 余 0 或 1，故 \(a,b,c\) 必全为偶数。设 \(a=2x, b=2y, c=2z\)。<br>
+                                    代入原式得：\(4x^2 + 4y^2 + 4z^2 = 2004 \implies x^2 + y^2 + z^2 = 501\)。<br>
+                                    ② <b>奇偶分析</b>：501 是奇数，故 \(x,y,z\) 必为两偶一奇。不妨设 \(z\) 为奇数，且 \(z \le \sqrt{501} \approx 22\)。<br>
+                                    ③ <b>模3分析</b>：\(501 \equiv 0 \pmod 3\)。由于平方数模 3 余 0 或 1，若三者全余 0，则它们皆为 3 的倍数，平方和被 9 整除，但 \(501 \equiv 6 \pmod 9\)，矛盾。故 \(x,y,z\) 模 3 必全余 1（即均不是 3 的倍数）。<br>
+                                    ④ <b>枚举筛选</b>：综合 \(z\) 为奇数、\(z \le 22\)、\(z\) 不是 3 的倍数，所以 \(z\) 只能取 \(1, 5, 7, 11, 13, 17, 19\)：
+                                    <ul>
+                                        <li>\(z=1\)：\(x^2+y^2=500\)。设 \(x=2p, y=2q\)，则 \(p^2+q^2=125\)。\(125 = 10^2+5^2 = 11^2+2^2\)。对应 \((p,q)=(10,5)\) 或 \((11,2)\)，得 \((x,y)=(20,10)\) 或 \((22,4)\)。即 \((a,b,c) = (40,20,2)\) 或 \((44,8,2)\)。</li>
+                                        <li>\(z=5\)：\(x^2+y^2=476 \implies p^2+q^2=119\)。\(119 \equiv 3 \pmod 4\)，无解。</li>
+                                        <li>\(z=7\)：\(x^2+y^2=452 \implies p^2+q^2=113 = 8^2+7^2\)。对应 \((p,q)=(8,7)\)，得 \((x,y)=(16,14)\)。即 \((a,b,c) = (32,28,14)\)。</li>
+                                        <li>\(z=11\)：\(x^2+y^2=380 \implies p^2+q^2=95\)。\(95 \equiv 3 \pmod 4\)，无解。</li>
+                                        <li>\(z=13\)：\(x^2+y^2=332 \implies p^2+q^2=83\)。\(83 \equiv 3 \pmod 4\)，无解。</li>
+                                        <li>\(z=17\)：\(x^2+y^2=212 \implies p^2+q^2=53 = 7^2+2^2\)。对应 \((p,q)=(7,2)\)，得 \((x,y)=(14,4)\)。即 \((a,b,c) = (28,8,34)\)。</li>
+                                        <li>\(z=19\)：\(x^2+y^2=140 \implies p^2+q^2=35\)。\(35 \equiv 3 \pmod 4\)，无解。</li>
+                                    </ul>
+                                    ⑤ 所以满足条件的正整数解共有以下 <b>4</b> 组（不计顺序）：
+                                    \[
+(44, 8, 2), (40, 20, 2), (32, 28, 14), (28, 8, 34)
+\]
+                                </div></details>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. 模特殊数的规律 -->
+            <div class="acc-item">
+                <div class="acc-header" onclick="toggleAccordion(this)">2. 基础性质：模特殊数的规律</div>
+                <div class="acc-content">
+                    <div class="sub-title">一、弃九法（模 9 与 模 3）</div>
+                    <p>一个整数模 9（或模 3）的余数，等于它各位数字之和模 9（或模 3）的余数。</p>
+                    <div class="content-box" style="border-left-color: #f39c12;">
+                        <p><b>原理解析：</b>因为 \(10 \equiv 1 \pmod 9\)，所以 \(10^k \equiv 1 \pmod 9\)。对于数 \(N = \overline{a_na_{n-1}\dots a_1a_0}\)：<br>
+                        \(N = a_n 10^n + \dots + a_1 10 + a_0 \equiv a_n + \dots + a_1 + a_0 \pmod 9\)。</p>
+                    </div>
+
+                    <div class="sub-title">二、奇偶位差法（模 11）</div>
+                    <p>一个整数能被 11 整除的充要条件是：<b>奇数位数字之和</b>与<b>偶数位数字之和</b>的差能被 11 整除。</p>
+                    <div class="content-box" style="border-left-color: #f39c12;">
+                        <p><b>原理解析：</b>因为 \(10 \equiv -1 \pmod{11}\)，所以 \(10^k \equiv (-1)^k \pmod{11}\)。<br>
+                        正负号交替出现，就形成了奇数位与偶数位的差。<br>
+                        <em>例如：判断 123456 是否能被 11 整除。<br>
+                        奇数位和：\(6+4+2=12\)，偶数位和：\(5+3+1=9\)。<br>
+                        差：\(12-9=3\)，不能被 11 整除，所以原数不能被 11 整除。</em></p>
+                    </div>
+
+                    <div class="sub-title">三、实战习题</div>
+                    <div class="exercise-box">
+                        <ol>
+                            <li>求 \(2^{2024}\) 除以 7 的余数。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    利用周期的思想：<br>
+                                    \(2^1 \equiv 2 \pmod 7\)<br>
+                                    \(2^2 \equiv 4 \pmod 7\)<br>
+                                    \(2^3 \equiv 1 \pmod 7\)<br>
+                                    所以周期为 3。<br>
+                                    \(2024 = 3 \times 674 + 2\)。<br>
+                                    所以 \(2^{2024} \equiv 2^2 \equiv 4 \pmod 7\)。
+                                </div></details>
+                            </li>
+                            <li>判断 98765432 能否被 11 整除。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    奇数位数字（从右往左第1,3,5,7位）：2, 4, 6, 8，和为 \(2+4+6+8 = 20\)。<br>
+                                    偶数位数字（从右往左第2,4,6,8位）：3, 5, 7, 9，和为 \(3+5+7+9 = 24\)。<br>
+                                    差：\(20 - 24 = -4\)，不能被 11 整除，所以原数不能被 11 整除。
+                                </div></details>
+                            </li>
+                            <li>证明：\(2222^{5555} + 5555^{2222}\) 能被 7 整除。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    考虑模 7 的余数。<br>
+                                    因为 \(2222 = 7 \times 317 + 3\)，所以 \(2222 \equiv 3 \pmod 7\)。<br>
+                                    因为 \(5555 = 7 \times 793 + 4\)，所以 \(5555 \equiv 4 \equiv -3 \pmod 7\)。<br>
+                                    原式 \(\equiv 3^{5555} + (-3)^{2222} \pmod 7\)。<br>
+                                    \(= 3^{5555} + 3^{2222} = 3^{2222}(3^{3333} + 1)\)。<br>
+                                    因为 \(3333 = 3 \times 1111\)，且 \(3^3 = 27 \equiv -1 \pmod 7\)（或者利用 \(3^6 \equiv 1\)）。<br>
+                                    这里 \(3^3 \equiv -1\)，所以 \(3^{3333} = (3^3)^{1111} \equiv (-1)^{1111} = -1 \pmod 7\)。<br>
+                                    因此 \(3^{3333} + 1 \equiv -1 + 1 = 0 \pmod 7\)。<br>
+                                    所以原式能被 7 整除。
+                                </div></details>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. 高斯函数 -->
+            <div class="acc-item">
+                <div class="acc-header" onclick="toggleAccordion(this)">3. 辅助工具：高斯函数 [x]</div>
+                <div class="acc-content">
+                    <div class="sub-title">一、核心定义与基本公理</div>
+                    <p><b>定义：</b>函数 \(y = [x]\) 称为取整函数，表示不超过实数 \(x\) 的最大整数（也称为 \(x\) 的整数部分）。而 \(\{x\} = x - [x]\) 表示 \(x\) 的小数部分。</p>
+                    
+                    <div class="axiom-box">
+                        <p style="font-weight: bold; color: #d35400; margin-bottom: 10px;">【核心公理（一切的出发点）】</p>
+                        <p style="font-size: 1.1rem;">
+                            \(0 \le \{x\} < 1\)<br>
+                            \(\iff 0 \le x - [x] < 1\)<br>
+                            \(\iff \mathbf{[x] \le x < [x] + 1}\)
+                        </p>
+                    </div>
+
+                    <!-- 严格对齐整数坐标的网格 (SVG保留，颜色改为橙黄色) -->
+                    <div class="graph-container">
+                        <svg width="600" height="400" viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse" x="300" y="200">
+                                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e0e0e0" stroke-width="1"/>
+                                </pattern>
+                            </defs>
+                            <rect width="100%" height="100%" fill="url(#grid)" />
+
+                            <line x1="80" y1="200" x2="540" y2="200" stroke="#333" stroke-width="1.5" />
+                            <line x1="300" y1="40" x2="300" y2="360" stroke="#333" stroke-width="1.5" />
+                            
+                            <polygon points="545,200 535,195 535,205" fill="#333" />
+                            <polygon points="300,35 295,45 305,45" fill="#333" />
+                            
+                            <text x="550" y="205" font-family="Times New Roman" font-size="16" font-style="italic">x</text>
+                            <text x="310" y="45" font-family="Times New Roman" font-size="16" font-style="italic">y</text>
+                            <text x="280" y="215" font-family="Times New Roman" font-size="14">O</text>
+
+                            <text x="335" y="215" font-family="Times New Roman" font-size="14">1</text>
+                            <text x="375" y="215" font-family="Times New Roman" font-size="14">2</text>
+                            <text x="415" y="215" font-family="Times New Roman" font-size="14">3</text>
+                            <text x="255" y="215" font-family="Times New Roman" font-size="14">-1</text>
+                            <text x="215" y="215" font-family="Times New Roman" font-size="14">-2</text>
+
+                            <text x="280" y="165" font-family="Times New Roman" font-size="14">1</text>
+                            <text x="280" y="125" font-family="Times New Roman" font-size="14">2</text>
+                            <text x="280" y="85" font-family="Times New Roman" font-size="14">3</text>
+                            <text x="275" y="245" font-family="Times New Roman" font-size="14">-1</text>
+                            <text x="275" y="285" font-family="Times New Roman" font-size="14">-2</text>
+
+                            <!-- 阶梯线颜色改为深橙色 -->
+                            <line x1="220" y1="280" x2="260" y2="280" stroke="#d35400" stroke-width="3" />
+                            <circle cx="220" cy="280" r="4.5" fill="#d35400" />
+                            <circle cx="260" cy="280" r="4.5" fill="white" stroke="#d35400" stroke-width="2" />
+                            
+                            <line x1="260" y1="240" x2="300" y2="240" stroke="#d35400" stroke-width="3" />
+                            <circle cx="260" cy="240" r="4.5" fill="#d35400" />
+                            <circle cx="300" cy="240" r="4.5" fill="white" stroke="#d35400" stroke-width="2" />
+                            
+                            <line x1="300" y1="200" x2="340" y2="200" stroke="#d35400" stroke-width="3" />
+                            <circle cx="300" cy="200" r="4.5" fill="#d35400" />
+                            <circle cx="340" cy="200" r="4.5" fill="white" stroke="#d35400" stroke-width="2" />
+                            
+                            <line x1="340" y1="160" x2="380" y2="160" stroke="#d35400" stroke-width="3" />
+                            <circle cx="340" cy="160" r="4.5" fill="#d35400" />
+                            <circle cx="380" cy="160" r="4.5" fill="white" stroke="#d35400" stroke-width="2" />
+                            
+                            <line x1="380" y1="120" x2="420" y2="120" stroke="#d35400" stroke-width="3" />
+                            <circle cx="380" cy="120" r="4.5" fill="#d35400" />
+                            <circle cx="420" cy="120" r="4.5" fill="white" stroke="#d35400" stroke-width="2" />
+
+                            <line x1="420" y1="80" x2="460" y2="80" stroke="#d35400" stroke-width="3" />
+                            <circle cx="420" cy="80" r="4.5" fill="#d35400" />
+                            <circle cx="460" cy="80" r="4.5" fill="white" stroke="#d35400" stroke-width="2" />
+                        </svg>
+                    </div>
+
+                    <div class="sub-title">二、从公理推导核心性质（先思考，再看证明）</div>
+                    <div class="content-box">
+                        <p><b>a) 平移性质：</b>若 \(x \in \mathbb{R}, n \in \mathbb{Z}\)，则：\([x + n] = [x] + n\) 且 \(\{x + n\} = \{x\}\)</p>
+                        <details><summary>点击查看性质 a 的证明</summary>
+                            <div class="solution-text">
+                                <b>证明：</b>由核心公理得：\([x] \le x < [x] + 1\)。<br>
+                                不等式两边同时加上整数 \(n\)，得到：\([x] + n \le x + n < [x] + n + 1\)。<br>
+                                由于 \([x] + n\) 是一个整数，这说明“不超过 \(x+n\) 的最大整数”恰好就是 \([x]+n\)。<br>
+                                因此，\([x+n] = [x] + n\)。<br>
+                                对于小数部分：\(\{x+n\} = (x+n) - [x+n] = x+n - ([x]+n) = x - [x] = \{x\}\)。得证。
+                            </div>
+                        </details>
+
+                        <p style="margin-top: 15px;"><b>b) 加法不等式：</b>若 \(x, y \in \mathbb{R}\)，则：\([x] + [y] \le [x + y] \le [x] + [y] + 1\)</p>
+                        <details><summary>点击查看性质 b 的证明</summary>
+                            <div class="solution-text">
+                                <b>证明：</b>由核心公理，将 \(x\) 和 \(y\) 展开为整数部分与小数部分之和：<br>
+                                \(x = [x] + \{x\}\)，\(y = [y] + \{y\}\)。则 \(x+y = [x]+[y] + \{x\}+\{y\}\)。<br>
+                                <b>左侧：</b>因为小数部分 \(\{x\} \ge 0, \{y\} \ge 0\)，所以 \(x+y \ge [x]+[y]\)。由于 \([x+y]\) 是不超过 \(x+y\) 的最大整数，必然有 \([x+y] \ge [x]+[y]\)。<br>
+                                <b>右侧：</b>由公理知小数部分严格小于 1，即 \(\{x\} < 1, \{y\} < 1\)，所以 \(\{x\} + \{y\} < 2\)。<br>
+                                因此 \(x+y < [x]+[y] + 2\)。两边取整（向下取整），得 \([x+y] \le [x]+[y]+1\)。得证。
+                            </div>
+                        </details>
+
+                        <p style="margin-top: 15px;"><b>c) 乘法不等式：</b>若 \(n \in \mathbb{Z}^+, x \in \mathbb{R}\)，则：\([nx] \ge n[x]\)</p>
+                        <details><summary>点击查看性质 c 的证明</summary>
+                            <div class="solution-text">
+                                <b>证明：</b>由核心公理，\([x] \le x\)。<br>
+                                不等式两边同时乘以正整数 \(n\)，得到 \(n[x] \le nx\)。<br>
+                                因为 \(n[x]\) 是整数，而 \([nx]\) 是不超过 \(nx\) 的最大整数，既然 \(n[x]\) 也小于等于 \(nx\)，所以它必然小于等于那个“最大”的，即 \([nx] \ge n[x]\)。得证。
+                            </div>
+                        </details>
+
+                        <p style="margin-top: 15px;"><b>d) 倍数计数：</b>若 \(n \in \mathbb{Z}^+, x > 1\)，则在区间 \([1, x]\) 内，恰好有 \([\frac{x}{n}]\) 个整数是 \(n\) 的倍数。</p>
+                        <details><summary>点击查看性质 d 的证明</summary>
+                            <div class="solution-text">
+                                <b>证明：</b>在区间 \([1, x]\) 内，\(n\) 的正倍数依次为 \(n, 2n, 3n, \dots, kn\)。<br>
+                                设总共有 \(k\) 个，则最后一个倍数必然满足 \(kn \le x\)，两边除以 \(n\) 得到 \(k \le \frac{x}{n}\)。<br>
+                                因为我们要找的是满足条件的“最大”整数 \(k\)，根据取整函数的公理，这个最大的整数 \(k\) 恰好就是 \(\frac{x}{n}\) 的向下取整，即 \(k = [\frac{x}{n}]\)。得证。
+                            </div>
+                        </details>
+                    </div>
+
+                    <div class="sub-title">三、进阶重要应用（严格基于上述公理）</div>
+                    
+                    <p><b>1. 勒让德定理 (Legendre's Formula)</b><br>
+                    计算 \(n!\) 的质因数分解中，质数 \(p\) 的指数 \(v_p(n!)\)：</p>
+                    <div class="math-display">\[
+ v_p(n!) = \left[\frac{n}{p}\right] + \left[\frac{n}{p^2}\right] + \left[\frac{n}{p^3}\right] + \dots 
+\]</div>
+                    <details><summary>点击查看勒让德定理的证明</summary>
+                        <div class="solution-text">
+                            <b>证明：</b>\(n! = 1 \times 2 \times 3 \times \dots \times n\)。要统计这 \(n\) 个数中一共有多少个质因数 \(p\)。<br>
+                            利用我们刚刚证出的<b>性质 d</b>：<br>
+                            - 是 \(p\) 的倍数的数有 \([\frac{n}{p}]\) 个，它们每个至少贡献 1 个 \(p\)；<br>
+                            - 是 \(p^2\) 的倍数的数有 \([\frac{n}{p^2}]\) 个，它们每个在前面已经算过 1 个 \(p\) 的基础上，又多贡献 1 个 \(p\)；<br>
+                            - 是 \(p^3\) 的倍数的数有 \([\frac{n}{p^3}]\) 个，再多贡献 1 个 \(p\)；<br>
+                            以此类推，直到 \(p^k > n\) 为止（此时 \([\frac{n}{p^k}] = 0\)）。<br>
+                            将这些贡献相加，即得公式。
+                        </div>
+                    </details>
+                    
+                    <p style="margin-top: 20px;"><b>2. 埃尔米特恒等式 (Hermite's Identity)</b><br>
+                    对于任意实数 \(x\) 和正整数 \(n\)：</p>
+                    <div class="math-display">\[
+ \sum_{k=0}^{n-1} \left[x + \frac{k}{n}\right] = [nx] 
+\]</div>
+                    <details><summary>点击查看埃尔米特恒等式的证明</summary>
+                        <div class="solution-text">
+                            <b>证明：</b>设 \(x = [x] + \{x\}\)。由<b>平移性质 a</b>得，左边求和式中的每一项都可以提取出 \([x]\)。<br>
+                            所以左边等于 \(n[x] + \sum_{k=0}^{n-1} [\{x\} + \frac{k}{n}]\)。<br>
+                            同理，右边 \([nx] = [n([x]+\{x\})] = n[x] + [n\{x\}]\)。<br>
+                            我们只需要证明：\(\sum_{k=0}^{n-1} [\{x\} + \frac{k}{n}] = [n\{x\}]\) 即可。<br><br>
+                            由核心公理，设 \(\{x\} = \frac{m}{n} + r\)，其中 \(m\) 是整数，且 \(0 \le m \le n-1\)，\(0 \le r < \frac{1}{n}\)。<br>
+                            (这相当于把小数部分分成 \(n\) 份，看看落在第几份里)。<br>
+                            那么对于前 \(n-m\) 项（即 \(k=0\) 到 \(n-1-m\)），\(\{x\} + \frac{k}{n} = \frac{m+k}{n} + r\)。此时 \(m+k < n\)，总和小于 1，取整为 0。<br>
+                            对于后 \(m\) 项（即 \(k=n-m\) 到 \(n-1\)），\(\frac{m+k}{n} \ge 1\)，取整为 1。<br>
+                            所以左边的取整之和为 \(n-m\) 个 0 加上 \(m\) 个 1，结果恰好是 \(m\)。<br>
+                            而右边 \(n\{x\} = n(\frac{m}{n} + r) = m + nr\)。由公理知 \(0 \le nr < 1\)，所以 \([n\{x\}] = m\)。<br>
+                            左右两边相等，证毕。
+                        </div>
+                    </details>
+        <!-- 高斯函数周期律（平移破局） -->
+        <div class="sub-title">四、高斯函数周期律（平移破局）</div>
+        
+        <div class="content-box" style="background: #fdfbf7; border-left: 4px solid #f39c12; padding: 20px; border-radius: 6px; margin-top: 15px; margin-bottom: 20px; font-size: 0.95rem; line-height: 1.8;">
+            <p>在数论中，遇到带有取整符号 \([x]\) 的方程或求和式时，直接求解往往无从下手。但如果我们能发现其背后的<strong>周期性</strong>，就能利用“整体平移”瞬间破局。</p>
+
+<p style="margin-top: 10px;"><strong>【核心性质】</strong> 设 \(g(x) = [\frac{x}{a}] + [\frac{x}{b}]\)，其中 \(a, b\) 为正整数且<strong>互素</strong> \((a,b)=1\)。<br>
+那么 \(g(x)\) 具有宏观上的周期平移规律：<br>
+<strong style="color: #e74c3c; font-size: 1.1rem;">\(g(x+ab) = g(x) + a + b\)</strong></p>
+
+<p style="margin-top: 10px;"><strong>【补充说明】</strong> 若 \(a, b\) 不互素，平移 \(ab\) 个单位依然是一个可行的周期；但此时它的<strong>最小正周期</strong>其实是它们的最小公倍数 \(\text{lcm}(a,b)\)，对应的纵向平移高度则变为 \(\frac{a+b}{d}\)（其中 \(d=\gcd(a,b)\)）。</p>
+
+            <p style="margin-top: 15px;"><b>图形直观：</b> 下图展示了 \(g(x) = [\frac{x}{2}] + [\frac{x}{3}]\) 的图像（此时 \(a=2, b=3\)）。可以清晰地看到，红色虚线框出的每一个周期（长度为 \(ab=6\)）内，阶梯的“形状”完全一样，且左端点实心、右端点空心。每次向右跨越一个周期，整体高度就准确上移了 \(a+b=5\)。</p>
+
+            <div class="svg-container" style="display: flex; justify-content: center; margin: 25px 0; background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
+                <svg viewBox="0 0 720 420" width="100%" style="max-width: 650px; font-family: Arial, sans-serif;">
+                    <defs>
+                        <marker id="arrowRed" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                            <path d="M 0 0 L 10 5 L 0 10 Z" fill="#e74c3c" />
+                        </marker>
+                        <marker id="arrowBlack" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                            <path d="M 0 0 L 10 5 L 0 10 Z" fill="#333" />
+                        </marker>
+                    </defs>
+
+                    <!-- 背景网格 -->
+                    <g stroke="#f0f0f0" stroke-width="1">
+                        <line x1="80" y1="40" x2="80" y2="340"/><line x1="110" y1="40" x2="110" y2="340"/><line x1="140" y1="40" x2="140" y2="340"/>
+                        <line x1="170" y1="40" x2="170" y2="340"/><line x1="200" y1="40" x2="200" y2="340"/><line x1="230" y1="40" x2="230" y2="340"/>
+                        <line x1="260" y1="40" x2="260" y2="340"/><line x1="290" y1="40" x2="290" y2="340"/><line x1="320" y1="40" x2="320" y2="340"/>
+                        <line x1="350" y1="40" x2="350" y2="340"/><line x1="380" y1="40" x2="380" y2="340"/><line x1="410" y1="40" x2="410" y2="340"/>
+                        <line x1="440" y1="40" x2="440" y2="340"/><line x1="470" y1="40" x2="470" y2="340"/><line x1="500" y1="40" x2="500" y2="340"/>
+                        <line x1="530" y1="40" x2="530" y2="340"/><line x1="560" y1="40" x2="560" y2="340"/><line x1="590" y1="40" x2="590" y2="340"/>
+                        <line x1="620" y1="40" x2="620" y2="340"/>
+                        <line x1="50" y1="340" x2="680" y2="340"/><line x1="50" y1="320" x2="680" y2="320"/><line x1="50" y1="300" x2="680" y2="300"/>
+                        <line x1="50" y1="280" x2="680" y2="280"/><line x1="50" y1="260" x2="680" y2="260"/><line x1="50" y1="240" x2="680" y2="240"/>
+                        <line x1="50" y1="220" x2="680" y2="220"/><line x1="50" y1="200" x2="680" y2="200"/><line x1="50" y1="180" x2="680" y2="180"/>
+                        <line x1="50" y1="160" x2="680" y2="160"/><line x1="50" y1="140" x2="680" y2="140"/><line x1="50" y1="120" x2="680" y2="120"/>
+                        <line x1="50" y1="100" x2="680" y2="100"/><line x1="50" y1="80" x2="680" y2="80"/><line x1="50" y1="60" x2="680" y2="60"/>
+                    </g>
+
+                    <!-- 坐标轴 -->
+                    <line x1="80" y1="340" x2="680" y2="340" stroke="#333" stroke-width="1.5" marker-end="url(#arrowBlack)"/>
+                    <line x1="80" y1="340" x2="80" y2="30" stroke="#333" stroke-width="1.5" marker-end="url(#arrowBlack)"/>
+                    <text x="690" y="345" font-size="16" fill="#333" font-style="italic">x</text>
+                    <text x="85" y="20" font-size="16" fill="#333" font-style="italic">y</text>
+                    <text x="60" y="355" font-size="14" fill="#333">O</text>
+
+                    <!-- 横轴刻度 -->
+                    <g fill="#333" font-size="14" text-anchor="middle">
+                        <text x="140" y="365">2</text>
+                        <text x="170" y="365">3</text>
+                        <text x="260" y="365" font-weight="bold" fill="#e74c3c">6</text>
+                        <text x="320" y="365">8</text>
+                        <text x="350" y="365">9</text>
+                        <text x="440" y="365" font-weight="bold" fill="#e74c3c">12</text>
+                        <text x="500" y="365">14</text>
+                        <text x="530" y="365">15</text>
+                        <text x="620" y="365" font-weight="bold" fill="#e74c3c">18</text>
+                    </g>
+
+                    <!-- 纵轴刻度 -->
+                    <g fill="#333" font-size="14" text-anchor="end">
+                        <text x="70" y="244" font-weight="bold" fill="#e74c3c">5</text>
+                        <text x="70" y="144" font-weight="bold" fill="#e74c3c">10</text>
+                        <text x="70" y="44" font-weight="bold" fill="#e74c3c">15</text>
+                    </g>
+
+                    <!-- 周期分割线 -->
+                    <line x1="260" y1="40" x2="260" y2="340" stroke="#e74c3c" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.6"/>
+                    <line x1="440" y1="40" x2="440" y2="340" stroke="#e74c3c" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.6"/>
+                    
+                    <text x="170" y="25" font-size="14" fill="#e74c3c" text-anchor="middle" font-weight="bold">周期1 (宽6)</text>
+                    <text x="350" y="25" font-size="14" fill="#e74c3c" text-anchor="middle" font-weight="bold">周期2 (宽6)</text>
+                    <text x="530" y="25" font-size="14" fill="#e74c3c" text-anchor="middle" font-weight="bold">周期3 (宽6)</text>
+
+                    <!-- 阶梯线段 -->
+                    <g stroke="#d35400" stroke-width="2.5" stroke-linecap="round">
+                        <line x1="80" y1="340" x2="140" y2="340"/>
+                        <line x1="140" y1="320" x2="170" y2="320"/>
+                        <line x1="170" y1="300" x2="200" y2="300"/>
+                        <line x1="200" y1="280" x2="260" y2="280"/>
+                        <line x1="260" y1="240" x2="320" y2="240"/>
+                        <line x1="320" y1="220" x2="350" y2="220"/>
+                        <line x1="350" y1="200" x2="380" y2="200"/>
+                        <line x1="380" y1="180" x2="440" y2="180"/>
+                        <line x1="440" y1="140" x2="500" y2="140"/>
+                        <line x1="500" y1="120" x2="530" y2="120"/>
+                        <line x1="530" y1="100" x2="560" y2="100"/>
+                        <line x1="560" y1="80" x2="620" y2="80"/>
+                    </g>
+
+                    <!-- 实心点 -->
+                    <g fill="#d35400">
+                        <circle cx="80" cy="340" r="4"/><circle cx="140" cy="320" r="4"/><circle cx="170" cy="300" r="4"/>
+                        <circle cx="200" cy="280" r="4"/><circle cx="260" cy="240" r="4"/><circle cx="320" cy="220" r="4"/>
+                        <circle cx="350" cy="200" r="4"/><circle cx="380" cy="180" r="4"/><circle cx="440" cy="140" r="4"/>
+                        <circle cx="500" cy="120" r="4"/><circle cx="530" cy="100" r="4"/><circle cx="560" cy="80" r="4"/>
+                    </g>
+
+                    <!-- 空心点 -->
+                    <g fill="#fff" stroke="#d35400" stroke-width="2">
+                        <circle cx="140" cy="340" r="4"/><circle cx="170" cy="320" r="4"/><circle cx="200" cy="300" r="4"/>
+                        <circle cx="260" cy="280" r="4"/><circle cx="320" cy="240" r="4"/><circle cx="350" cy="220" r="4"/>
+                        <circle cx="380" cy="200" r="4"/><circle cx="440" cy="180" r="4"/><circle cx="500" cy="140" r="4"/>
+                        <circle cx="530" cy="120" r="4"/><circle cx="560" cy="100" r="4"/><circle cx="620" cy="80" r="4"/>
+                    </g>
+
+                    <!-- 平移向量指示 -->
+                    <line x1="80" y1="340" x2="250" y2="250" stroke="#e74c3c" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arrowRed)"/>
+                    <text x="120" y="280" font-size="14" fill="#e74c3c" font-weight="bold" transform="rotate(-27 120 280)">平移 (+6, +5)</text>
+                    <line x1="260" y1="240" x2="430" y2="150" stroke="#e74c3c" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arrowRed)"/>
+                    <text x="300" y="180" font-size="14" fill="#e74c3c" font-weight="bold" transform="rotate(-27 300 180)">平移 (+6, +5)</text>
+                </svg>
+            </div>
+            
+            <details>
+                <summary>🔍 点击查看严谨的代数推导与实战应用</summary>
+                <div style="padding: 10px 5px; border-left: 3px solid #ecf0f1; margin-top: 10px; color: #34495e;">
+                    <p><b>推导：</b> \(g(x+ab) = [\frac{x+ab}{a}] + [\frac{x+ab}{b}] = [\frac{x}{a} + b] + [\frac{x}{b} + a]\)。因为 \(a,b\) 是整数，整数可以直接提到取整符号外，即 \(g(x+ab) = [\frac{x}{a}] + b + [\frac{x}{b}] + a = g(x) + a + b\)。</p>
+                    <p style="margin-top: 10px;"><b>实战意义：</b> 如果题目让你求 \(g(x)\) 在某个大区间（比如 \(x \in [0, 2024]\)）内的和，你不需要逐个算。只需算出它在第一个周期内的表现，然后利用 \(ab\) 周期和 \(a+b\) 的步长，直接用乘法算出完整周期的总量，最后再单独处理不足一个周期的余数部分即可。</p>
+                </div>
+            </details>
+        <!-- 思考题折叠框 -->
+        <div style="margin-top: 20px; background: #f8f9fa; border: 1px dashed #bdc3c7; border-radius: 8px; padding: 15px;">
+            <p style="font-weight: bold; color: #2980b9; margin-bottom: 10px;">💡 【深度拓展：打破常规的取整函数周期】</p>
+            <p style="margin-bottom: 10px; font-size: 0.95rem;">前面我们研究了 \(g(x) = [\frac{x}{a}] + [\frac{x}{b}]\) 的周期规律。如果改变变量在函数中的位置，或者改变系数的性质，它的周期性会发生怎样的变化？请点击展开，查看严谨的代数推导。</p>
+            
+            <details style="margin-top: 15px; background: #fff; border: 1px solid #e2e8f0; padding: 15px; border-radius: 6px; cursor: pointer;">
+                <summary style="font-weight: bold; color: #e67e22; outline: none;">点击展开：三种进阶变式的严丝合缝推导</summary>
+                
+                <div style="margin-top: 15px; font-size: 0.95rem; line-height: 1.8; color: #333; border-left: 3px solid #f39c12; padding-left: 15px;">
+                    
+                    <!-- 变式一 -->
+                    <p style="font-weight: bold; color: #9b59b6; font-size: 1.05rem;">变式一：变量跑到了分子上 \(g(x) = [ax] + [bx]\)</p>
+                    <p>要寻找一个平移步长 \(T>0\)，使得 \(g(x+T)\) 比 \(g(x)\) 多出一个固定的整数。提取变量后，这要求 <strong>\(aT\) 和 \(bT\) 必须同时为整数</strong>。</p>
+                    <blockquote style="background: #fdfbf7; padding: 10px; border-left: 3px solid #bdc3c7; margin: 10px 0;">
+                        <p><b>推导：</b></p>
+                        <p>① 若 \(a, b\) 为<strong>整数</strong>（如 \(a=2, b=4\)）：要求 \(2T, 4T\) 同为整数。显然最小的 \(T = \frac{1}{2}\)。此时 \(g(x+\frac{1}{2}) = [2x+1] + [4x+2] = g(x) + 3\)。<br>
+                        <b>结论：</b>最小正周期 \(T = \frac{1}{\gcd(a,b)}\)。</p>
+                        <p style="margin-top: 5px;">② 若 \(a, b\) 为<strong>分数</strong>（设 \(a=\frac{p_1}{q_1}, b=\frac{p_2}{q_2}\) 为最简分数）：要使 \(aT\) 和 \(bT\) 为整数，\(T\) 的分子必须是 \(q_1, q_2\) 的公倍数，分母必须能约掉 \(p_1, p_2\)。<br>
+                        <b>结论：</b>最小正周期 \(T = \frac{\text{lcm}(q_1, q_2)}{\gcd(p_1, p_2)}\)。</p>
+                    </blockquote>
+
+                    <!-- 变式二 -->
+                    <p style="font-weight: bold; color: #e74c3c; font-size: 1.05rem; margin-top: 20px;">变式二：当系数遭遇无理数</p>
+                    <p>若 \(a, b\) 无理数，存在周期 \(T\) 的前提是 \(aT\) 和 \(bT\) 必须同为整数。两式相除得 \(\frac{a}{b} = \frac{m}{n}\)，即 <strong>\(\frac{a}{b}\) 必须是有理数</strong>（两者可公度）。</p>
+                    <blockquote style="background: #fdfbf7; padding: 10px; border-left: 3px solid #bdc3c7; margin: 10px 0;">
+                        <p><b>推导：</b></p>
+                        <p>① 若 \(\frac{a}{b}\) 为<strong>有理数</strong>（如 \(a=\sqrt{2}, b=2\sqrt{2}\)）：设 \(\sqrt{2}T = m\)，取最小正整数 \(m=1\)，解得最小正周期 \(T = \frac{\sqrt{2}}{2}\)。此时 \(g(x+\frac{\sqrt{2}}{2}) = g(x) + 1 + 2 = g(x) + 3\)。</p>
+<div style="margin-top: 5px;">
+    <p>② 若 \(\frac{a}{b}\) 为<strong>无理数</strong>（如 \(a=1, b=\sqrt{2}\)）：我们采用反证法来具体剖析。</p>
+    <p style="margin-top: 5px; padding-left: 15px; border-left: 3px solid #e74c3c; background: #fffaf0; padding: 10px;">
+        <b>代数矛盾：</b> 假设存在周期 \(T>0\)。由第一项 \(1 \cdot T = m\)（\(m\) 为整数）可知，\(T\) 必须是一个整数。<br>
+        将 \(T=m\) 代入第二项，要求 \(\sqrt{2} \cdot m = n\)（\(n\) 为整数）。<br>
+        因为 \(T>0\)，所以 \(m \neq 0\)，两边同除以 \(m\) 得到 \(\sqrt{2} = \frac{n}{m}\)。<br>
+        这个等式意味着 \(\sqrt{2}\) 可以表示为两个整数的分数，即 \(\sqrt{2}\) 是<strong>有理数</strong>。这与 \(\sqrt{2}\) 是无理数的常识产生了<strong>绝对矛盾</strong>！因此假设不成立。
+    </p>
+    <p style="margin-top: 10px;"><b>直观理解（为什么图形永远错位？）：</b><br>
+        在 \(g(x) = [x] + [\sqrt{2}x]\) 中，\([x]\) 在 \(x\) 为整数时（如 \(1, 2, 3\dots\)）发生跳跃；而 \([\sqrt{2}x]\) 在 \(x\) 为 \(\frac{1}{\sqrt{2}}, \frac{2}{\sqrt{2}}, \frac{3}{\sqrt{2}}\dots\) 时发生跳跃。<br>
+        由于 \(\sqrt{2}\) 是无理数，<strong>这两个跳跃点永远不可能在同一个位置同时发生</strong>。这就导致图形的跳变节奏永远无法对齐，呈现出杂乱无章的混沌状态。
+    </p>
+    <p style="margin-top: 10px; font-weight: bold; color: #e74c3c;">结论：当 \(\frac{a}{b}\) 为无理数时，函数彻底无周期。</p>
+</div>
+                    </blockquote>
+
+                    <!-- 变式三 -->
+                    <p style="font-weight: bold; color: #27ae60; font-size: 1.05rem; margin-top: 20px;">变式三：等比数列系数 \(g(x) = [x] + [2x] + [4x] + \dots + [2^{n-1}x]\)</p>
+                    <p>对于这种“分形”阶梯，我们来严格推导它的周期与平移高度。</p>
+                    <blockquote style="background: #fdfbf7; padding: 10px; border-left: 3px solid #bdc3c7; margin: 10px 0;">
+                        <p><b>推导：</b></p>
+                        <p>要使 \(g(x+T) - g(x)\) 为常数，要求系数 \(1, 2, 4 \dots, 2^{n-1}\) 乘以 \(T\) 之后均为整数。因为这些系数的最大公约数为 1，所以最小正周期 <strong>\(T = 1\)</strong>。</p>
+                        <p>当 \(x\) 增加 1 时，\(g(x+1) = [x+1] + [2(x+1)] + \dots = [x]+1 + [2x]+2 + \dots = g(x) + (1 + 2 + 4 + \dots + 2^{n-1})\)。<br>
+                        括号内是一个等比数列求和，结果为 \(2^n - 1\)。<br>
+                        <b>结论：</b>该函数的最小正周期恒为 <strong>\(1\)</strong>，但每次平移的高度为 <strong>\(2^n - 1\)</strong>（高度呈指数级爆炸，形成自相似分形）。</p>
+                    </blockquote>
+
+                </div>
+            </details>
+        </div>
+        </div>
+<!-- 高阶拓展：当取整函数遇上四则运算 -->
+<div style="margin-top: 20px; border: 1px dashed #e67e22; border-radius: 8px; padding: 25px;">
+    <p style="font-weight: bold; color: #d35400; margin-bottom: 15px; font-size: 1.1rem;">🚀 高阶拓展：当取整函数遇上四则运算</p>
+    
+    <p style="margin-bottom: 20px; font-size: 0.95rem; color: #444; line-height: 1.8;">
+        在前面的讨论中，我们证明了 \(g(x) = [\frac{x}{a}] + [\frac{x}{b}]\) 具有平移周期。但如果打破这个加法结构，把运算换成减、乘、除，它的周期性还能保留吗？我们通过代数推导来直接揭晓答案。
+    </p>
+
+    <!-- 推导部分 -->
+    <div style="font-size: 0.95rem; color: #333; line-height: 1.9;">
+        <p style="margin-bottom: 8px; font-weight: bold; color: #2980b9;">① 加减法：周期完美保留</p>
+        <p>设 \(g(x) = [ax] \pm [bx]\)。只要 \(aT, bT\) 均为整数，\(g(x+T) - g(x) = (a \pm b)T\)，差值恒定。图像依然保持完美的阶梯平移。</p>
+
+        <p style="margin-bottom: 8px; margin-top: 20px; font-weight: bold; color: #c0392b;">② 乘法：周期彻底湮灭</p>
+        <p>设 \(g(x) = [ax] \cdot [bx]\)。差值 \(g(x+T) - g(x) = aT[bx] + bT[ax] + abT^2\)，包含随 \(x\) 变化的变量，增量呈抛物线爆炸，<strong>不存在平移周期</strong>。</p>
+
+        <p style="margin-bottom: 8px; margin-top: 20px; font-weight: bold; color: #27ae60;">③ 除法：渐近与破碎</p>
+        <p>设 \(g(x) = \frac{[ax]}{[bx]}\)。差值绝非恒定常数，<strong>无周期</strong>。但 \(x \to \infty\) 时，\(g(x) \to \frac{a}{b}\)（渐近线）。</p>
+    </div>
+
+    <!-- 动态演示部分 -->
+    <details style="margin-top: 25px; background: #fff; border: 1px dashed #bdc3c7; border-radius: 6px; padding: 15px; cursor: pointer;" open>
+        <summary style="font-weight: bold; color: #d35400; outline: none; user-select: none;">📊 点击展开：眼见为实（全象限严谨阶梯，支持任意参数 a, b）</summary>
+        
+        <div style="margin-top: 20px; cursor: default;">
+            <div style="display: flex; gap: 15px; justify-content: center; margin-bottom: 20px; padding: 10px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <label style="font-weight: bold; color: #2980b9; display: flex; align-items: center; gap: 5px;">参数 a: <input type="number" id="inputA" value="1" oninput="updateGraph()" style="width: 60px; padding: 5px; text-align: center; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; font-weight: bold;"></label>
+                <label style="font-weight: bold; color: #2980b9; display: flex; align-items: center; gap: 5px;">参数 b: <input type="number" id="inputB" value="-1" oninput="updateGraph()" style="width: 60px; padding: 5px; text-align: center; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; font-weight: bold;"></label>
+            </div>
+
+            <p style="font-size: 0.9rem; color: #666; margin-bottom: 15px; text-align: center;">
+                试试输入 a=1, b=-1，或者 a=2, b=-3 观察奇妙的断点与断层。<br>
+                <span id="currentFormula" style="font-weight: bold; color: #e67e22; font-size: 1.05rem;"></span>
+            </p>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 15px; justify-content: center; flex-wrap: wrap; align-items: center;">
+                <button onclick="setOp('add', this)" class="graph-btn active">加法 [ax] + [bx]</button>
+                <button onclick="setOp('sub', this)" class="graph-btn">减法 [ax] - [bx]</button>
+                <button onclick="setOp('mul', this)" class="graph-btn">乘法 [ax] * [bx]</button>
+                <button onclick="setOp('div', this)" class="graph-btn">除法 [ax] / [bx]</button>
+            </div>
+
+            <div style="display: flex; justify-content: center; background: #fafafa; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; overflow-x: auto;">
+                <canvas id="graphCanvas" width="850" height="450" style="background: #fff; border-radius: 4px;"></canvas>
+            </div>
+        </div>
+    </details>
+</div>
+
+<!-- 深度思考：高斯函数的变幻莫测 -->
+<div style="margin-top: 25px; background: #fdfbf7; border-left: 5px solid #27ae60; border-radius: 8px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+    <p style="font-weight: bold; color: #27ae60; margin-bottom: 15px; font-size: 1.1rem;">🧠 深度思考：高斯函数的“变幻莫测”</p>
+    <p style="font-size: 0.95rem; color: #444; margin-bottom: 15px;">
+        取整符号 \([x]\) 就像一面神奇的照妖镜，当它与不同的代数结构结合时，会照出完全不同的几何形态。试着在脑海中（或在草稿纸上）描绘以下变体的图像与性质：
+    </p>
+
+    <ol style="font-size: 0.95rem; color: #333; line-height: 1.9; padding-left: 20px;">
+        <li style="margin-bottom: 12px;">
+            <strong style="color: #d35400;">抛物线的阶梯化：</strong>若 \(f(x) = ax^2 + bx + c \ (a \neq 0)\)，设 \(g(x) = [f(x)]\)。<br>
+            <em>思考：它的断点位置有什么分布规律？阶梯的宽度是如何随 \(x\) 变化的？它会有周期性吗？</em>
+        </li>
+        <li style="margin-bottom: 12px;">
+            <strong style="color: #2980b9;">小数部分的纯粹剥离：</strong>设 \(g(x) = x - [x]\)（常记作 \(\{x\}\)）。<br>
+            <em>思考：这是一个经典的“锯齿波”，它的值域是什么？周期是多少？如果在 \(x \in [0, 2]\) 上画图，原点和 \(x=1\) 处的点应该画实心还是空心？</em>
+        </li>
+        <li style="margin-bottom: 12px;">
+            <strong style="color: #8e44ad;">嵌套与升维：</strong>设 \(g(x) = \left[ \frac{[x]}{a} \right]\)（其中 \(a\) 为正整数）。<br>
+            <em>思考：它等价于 \(\left[ \frac{x}{a} \right]\) 吗？如果不等价，它们之间的图像有什么微妙的差异？</em>
+        </li>
+        <li style="margin-bottom: 12px;">
+            <strong style="color: #c0392b;">对称与奇偶性：</strong>设 \(g(x) = [x] + [-x]\)。<br>
+            <em>思考：结合我们之前的演示，这个函数在 \(x\) 为整数和非整数时，取值有什么不同？它是一个偶函数吗？</em>
+        </li>
+        <li>
+            <strong style="color: #f39c12;">与二进制的巧妙桥梁：</strong>设 \(g(x) = [x] + [x + \frac{1}{2}]\)。<br>
+            <em>思考：试着代入 \(x = 0.1, 0.6, 1.2\)，你会发现什么？它是否等价于 \([2x]\)？如果推广到 \([x] + [x+\frac{1}{3}] + [x+\frac{2}{3}]\)，它又与什么函数有关？</em>
+        </li>
+    </ol>
+</div>
+
+<!-- 附加一段CSS和JS，用于让按钮状态切换，这段可以放在文件的末尾 -->
+<style>
+    .graph-btn { padding: 6px 15px; border: 1px solid #ccc; border-radius: 20px; background: #fff; color: #333; font-weight: bold; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; }
+    .graph-btn:hover { border-color: #e67e22 !important; color: #e67e22 !important; }
+    .graph-btn.active { background: #e67e22 !important; color: #fff !important; border-color: #e67e22 !important; box-shadow: 0 2px 8px rgba(230, 126, 34, 0.3); }
+</style>
+
+<script>
+    // 检查是否已经存在 canvas 绘图逻辑，防止重复定义
+    if (typeof updateGraph === 'undefined') {
+        const canvas = document.getElementById('graphCanvas');
+        const ctx = canvas.getContext('2d');
+        let currentOp = 'add';
+
+        function setOp(op, btn) {
+            currentOp = op;
+            document.querySelectorAll('.graph-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            updateGraph();
+        }
+
+        function drawOpenCircle(x, y) {
+            ctx.fillStyle = '#fff'; ctx.strokeStyle = '#d35400'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        }
+
+        function drawSolidCircle(x, y) {
+            ctx.fillStyle = '#d35400';
+            ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fill();
+        }
+
+        function updateGraph() {
+            let a = parseInt(document.getElementById('inputA').value) || 1;
+            let b = parseInt(document.getElementById('inputB').value) || 1;
+            
+            let opSymbol = currentOp === 'add' ? '+' : (currentOp === 'sub' ? '-' : (currentOp === 'mul' ? '×' : '÷'));
+            document.getElementById('currentFormula').innerHTML = `当前函数: \\( g(x) = [${a}x] ${opSymbol} [${b}x] \\)`;
+            if (window.MathJax) MathJax.typesetPromise().catch(err => console.log(err.message));
+
+            const xMin = -5.5;
+            const xMax = 5.5;
+
+            let jumps = [xMin, xMax];
+            let maxVal = Math.max(Math.abs(a), Math.abs(b));
+            for(let k = Math.floor(xMin * maxVal); k <= Math.ceil(xMax * maxVal); k++) {
+                jumps.push(k / a);
+                jumps.push(k / b);
+            }
+            jumps = Array.from(new Set(jumps)).filter(x => x >= xMin && x <= xMax).sort((x, y) => x - y);
+
+            let segments = [];
+            for (let i = 0; i < jumps.length - 1; i++) {
+                let x1 = jumps[i];
+                let x2 = jumps[i+1];
+                if (x2 - x1 < 1e-8) continue; 
+
+                let midX = (x1 + x2) / 2;
+                let ax = Math.floor(a * midX);
+                let bx = Math.floor(b * midX);
+                let y = null;
+
+                if (currentOp === 'add') y = ax + bx;
+                else if (currentOp === 'sub') y = ax - bx;
+                else if (currentOp === 'mul') y = ax * bx;
+                else if (currentOp === 'div' && bx !== 0) y = ax / bx;
+
+                if (y !== null) {
+                    segments.push({ xStart: x1, xEnd: x2, y: y });
+                }
+            }
+
+            let yMin = 0, yMax = 0;
+            segments.forEach(s => {
+                if (s.y < yMin) yMin = s.y;
+                if (s.y > yMax) yMax = s.y;
+            });
+            if (currentOp === 'div') { 
+                let limit = Math.max(Math.abs(a/b), 1) * 1.5;
+                yMin = -limit; yMax = limit; 
+            } else {
+                yMin = Math.min(yMin, 0) - 1;
+                yMax = yMax + 1;
+            }
+
+            const padding = 40;
+            const w = canvas.width - padding * 2;
+            const h = canvas.height - padding * 2;
+            const mapX = (x) => padding + ((x - xMin) / (xMax - xMin)) * w;
+            const mapY = (y) => canvas.height - padding - ((y - yMin) / (yMax - yMin)) * h;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.strokeStyle = '#f0f0f0'; ctx.lineWidth = 1;
+            for (let i = Math.ceil(xMin); i <= xMax; i++) {
+                ctx.beginPath(); ctx.moveTo(mapX(i), padding); ctx.lineTo(mapX(i), canvas.height - padding); ctx.stroke();
+            }
+            let yStep = Math.ceil((yMax - yMin) / 8) || 1;
+            for (let i = Math.ceil(yMin); i <= yMax; i+=yStep) {
+                ctx.beginPath(); ctx.moveTo(padding, mapY(i)); ctx.lineTo(canvas.width - padding, mapY(i)); ctx.stroke();
+            }
+            ctx.strokeStyle = '#333'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(padding, mapY(0)); ctx.lineTo(canvas.width - padding, mapY(0)); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(mapX(0), canvas.height - padding); ctx.lineTo(mapX(0), padding); ctx.stroke();
+
+            ctx.fillStyle = '#666'; ctx.font = '12px Arial'; ctx.textAlign = 'center';
+            for (let i = Math.ceil(xMin); i <= xMax; i++) {
+                if(i !== 0 && i % 1 === 0) ctx.fillText(i, mapX(i), mapY(0) + 15);
+            }
+            ctx.textAlign = 'right';
+            for (let i = Math.ceil(yMin); i <= yMax; i+=yStep) {
+                if(Math.abs(i) > 0.01) ctx.fillText(Math.round(i*10)/10, mapX(0) - 5, mapY(i) + 4);
+            }
+
+            ctx.strokeStyle = '#d35400'; ctx.lineWidth = 2;
+            segments.forEach(s => {
+                let px1 = mapX(s.xStart);
+                let px2 = mapX(s.xEnd);
+                let py = mapY(s.y);
+
+                if (px2 - px1 > 0.5) {
+                    ctx.beginPath(); ctx.moveTo(px1, py); ctx.lineTo(px2, py); ctx.stroke();
+                }
+                drawOpenCircle(px1, py);
+                drawOpenCircle(px2, py);
+            });
+
+            ctx.strokeStyle = 'rgba(211, 84, 0, 0.4)';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([4, 4]);
+            
+            let jumpPoints = {};
+            jumps.forEach(x => {
+                if (!jumpPoints[x]) jumpPoints[x] = [];
+                
+                let axLeft = Math.floor(a * (x - 1e-6));
+                let bxLeft = Math.floor(b * (x - 1e-6));
+                let yLeft = null;
+                if (currentOp === 'add') yLeft = axLeft + bxLeft;
+                else if (currentOp === 'sub') yLeft = axLeft - bxLeft;
+                else if (currentOp === 'mul') yLeft = axLeft * bxLeft;
+                else if (currentOp === 'div' && bxLeft !== 0) yLeft = axLeft / bxLeft;
+                if (yLeft !== null) jumpPoints[x].push(yLeft);
+                
+                let axRight = Math.floor(a * (x + 1e-6));
+                let bxRight = Math.floor(b * (x + 1e-6));
+                let yRight = null;
+                if (currentOp === 'add') yRight = axRight + bxRight;
+                else if (currentOp === 'sub') yRight = axRight - bxRight;
+                else if (currentOp === 'mul') yRight = axRight * bxRight;
+                else if (currentOp === 'div' && bxRight !== 0) yRight = axRight / bxRight;
+                if (yRight !== null) jumpPoints[x].push(yRight);
+                
+                let axReal = Math.floor(a * x);
+                let bxReal = Math.floor(b * x);
+                let yReal = null;
+                if (currentOp === 'add') yReal = axReal + bxReal;
+                else if (currentOp === 'sub') yReal = axReal - bxReal;
+                else if (currentOp === 'mul') yReal = axReal * bxReal;
+                else if (currentOp === 'div' && bxReal !== 0) yReal = axReal / bxReal;
+                if (yReal !== null) jumpPoints[x].push(yReal);
+            });
+
+            for (let x in jumpPoints) {
+                let ys = Array.from(new Set(jumpPoints[x])).sort((a,b) => a-b);
+                if (ys.length > 1) {
+                    ctx.beginPath();
+                    ctx.moveTo(mapX(parseFloat(x)), mapY(ys[0]));
+                    ctx.lineTo(mapX(parseFloat(x)), mapY(ys[ys.length-1]));
+                    ctx.stroke();
+                }
+            }
+            ctx.setLineDash([]);
+
+            jumps.forEach(x => {
+                let ax = Math.floor(a * x);
+                let bx = Math.floor(b * x);
+                let y = null;
+
+                if (currentOp === 'add') y = ax + bx;
+                else if (currentOp === 'sub') y = ax - bx;
+                else if (currentOp === 'mul') y = ax * bx;
+                else if (currentOp === 'div' && bx !== 0) y = ax / bx;
+
+                if (y !== null) {
+                    drawSolidCircle(mapX(x), mapY(y));
+                }
+            });
+
+            if (currentOp === 'div' && a !== 0) {
+                let asymY = a / b;
+                if (asymY >= yMin && asymY <= yMax) {
+                    ctx.strokeStyle = '#3498db'; ctx.setLineDash([5, 5]); ctx.lineWidth = 1.5;
+                    ctx.beginPath(); ctx.moveTo(padding, mapY(asymY)); ctx.lineTo(canvas.width - padding, mapY(asymY)); ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.fillStyle = '#3498db'; ctx.textAlign = 'right';
+                    ctx.fillText(`y = ${a}/${b} (渐近线)`, canvas.width - padding - 10, mapY(asymY) - 10);
+                }
+            }
+        }
+
+        window.addEventListener('load', updateGraph);
+    }
+</script>
+                    <div class="sub-title">五、高斯函数真题精编（自招与竞赛）</div>
+                    <div class="exercise-box" style="border-left-color: #d35400; background: #fffcf5;">
+                        <p style="color: #d35400; font-weight: bold; margin-bottom: 15px;">以下题目难度较高，建议先独立思考，再看提示与解答。</p>
+                        <ol style="line-height: 2;">
+                            <li>已知 \([x]\) 为不大于 \(x\) 的最大整数，在 \(1, 2, \dots, 2015\) 中，有____个数满足 \(x - [\sqrt{x}]^2 = 9\)。（七宝中学 2015）
+                                <details><summary>点击查看提示与解答</summary>
+                                    <div class="solution-text">
+                                        <b>提示：</b>设 \(n = [\sqrt{x}]\)，则 \(n^2 \le x < (n+1)^2\)。代入原方程求 \(n\) 的范围。<br>
+                                        <b>解答：</b>设 \(n = [\sqrt{x}]\)，由公理得 \(n^2 \le x < (n+1)^2\)。<br>
+                                        原方程化为 \(x = n^2 + 9\)。<br>
+                                        代入不等式得：\(n^2 \le n^2 + 9 < n^2 + 2n + 1\)。<br>
+                                        左侧恒成立，右侧得 \(2n > 8 \Rightarrow n \ge 5\)。<br>
+                                        又因为 \(x \le 2015\)，所以 \(n^2 + 9 \le 2015 \Rightarrow n^2 \le 2006\)。<br>
+                                        因为 \(44^2 = 1936, 45^2 = 2025\)，所以 \(n \le 44\)。<br>
+                                        因此 \(n \in \{5, 6, \dots, 44\}\)，共 \(44 - 5 + 1 = 40\) 个。所以填 <b>40</b>。
+                                    </div>
+                                </details>
+                            </li>
+                            
+                            <li>记 \(A = \frac{3^{2018} + 2^{2018}}{3^{2014} + 2^{2014}}\)，则不超过 \(A\) 的最大整数为____。（四校飞行考）
+                                <details><summary>点击查看提示与解答</summary>
+                                    <div class="solution-text">
+                                        <b>提示：</b>提取 \(3^{2018}\) 和 \(3^{2014}\) 构造同底数，利用放缩法判断 \(A\) 的整数部分。<br>
+                                        <b>解答：</b>\(A = \frac{3^{2018}(1 + (2/3)^{2018})}{3^{2014}(1 + (2/3)^{2014})} = 81 \times \frac{1 + (2/3)^{2018}}{1 + (2/3)^{2014}}\)。<br>
+                                        因为 \(0 < \frac{2}{3} < 1\)，所以 \((2/3)^{2018} < (2/3)^{2014}\)。<br>
+                                        因此分数部分 \(\frac{1 + (2/3)^{2018}}{1 + (2/3)^{2014}} < 1\)。<br>
+                                        显然该分数大于 0。所以 \(0 < A - 81 < 81\)，但具体来说 \(A\) 略小于 81 且大于 80。<br>
+                                        因此 \([A] = 80\)。
+                                    </div>
+                                </details>
+                            </li>
+
+                            <li>\([\sqrt{1}] - [\sqrt{2}] + [\sqrt{3}] - [\sqrt{4}] + \dots + [\sqrt{2019}] - [\sqrt{2020}] = \)____。（华二松江 2024）
+                                <details><summary>点击查看提示与解答</summary>
+                                    <div class="solution-text">
+                                        <b>提示：</b>分段求和。当 \([\sqrt{k}] = m\) 时，\(k\) 的范围是 \(m^2 \le k < (m+1)^2\)，共 \(2m+1\) 项，注意正负号交替。<br>
+                                        <b>解答：</b>设 \(a_k = [\sqrt{k}]\)。当 \(m^2 \le k < (m+1)^2\) 时，\(a_k = m\)，共有 \(2m+1\) 项。<br>
+                                        由于正负号交替，每一项区间的和为 \(m \times (1 - 1 + 1 - \dots)\)。<br>
+                                        当 \(m\) 为奇数时，共 \(2m+1\) 项（奇数个），首项为正，和为 \(m\)。<br>
+                                        当 \(m\) 为偶数时，共 \(2m+1\) 项（奇数个），首项为正，和为 \(m\)。<br>
+                                        所以每个区间的和都是 \(m\)。<br>
+                                        \(\sqrt{2020}\) 介于 \(44\) 和 \(45\) 之间（\(44^2=1936, 45^2=2025\)）。<br>
+                                        所以原式 \(= 0 + 1 + 2 + \dots + 44 = \frac{44 \times 45}{2} = 990\)。
+                                    </div>
+                                </details>
+                            </li>
+
+                            <li>计算：\([\frac{1}{2-\sqrt{1 \times 2}}] + [\frac{1}{3-\sqrt{2 \times 3}}] + \dots + [\frac{1}{2024-\sqrt{2023 \times 2024}}] = \)____。（复附 2024）
+                                <details><summary>点击查看提示与解答</summary>
+                                    <div class="solution-text">
+                                        <b>提示：</b>分母有理化，化为 \(n + \sqrt{n(n-1)}\) 的形式，再判断其大小。<br>
+                                        <b>解答：</b>通项为 \(T_n = \frac{1}{n - \sqrt{n(n-1)}} = \frac{n + \sqrt{n(n-1)}}{n^2 - n(n-1)} = n + \sqrt{n(n-1)}\)。<br>
+                                        因为 \((n-1)^2 < n(n-1) < n^2\)，所以 \(n-1 < \sqrt{n(n-1)} < n\)。<br>
+                                        因此 \(n + n - 1 < T_n < n + n\)，即 \(2n-1 < T_n < 2n\)。<br>
+                                        所以 \([T_n] = 2n-1\)。<br>
+                                        原式 \(= \sum_{n=2}^{2024} (2n-1) = 3 + 5 + 7 + \dots + 4047\)。<br>
+                                        项数为 2023。和为 \(\frac{(3 + 4047) \times 2023}{2} = 2025 \times 2023 = 4096575\)。
+                                    </div>
+                                </details>
+                            </li>
+
+                            <li>计算：\([\frac{5 \times 1}{2021}] + [\frac{5 \times 2}{2021}] + \dots + [\frac{5 \times 2021}{2021}] = \)____。（交附 2022）
+                                <details><summary>点击查看提示与解答</summary>
+                                    <div class="solution-text">
+                                        <b>提示：</b>利用对称性配对求和。即 \([\frac{5k}{2021}] + [\frac{5(2021-k)}{2021}]\)。<br>
+                                        <b>解答：</b>原式共 2021 项。先看前 2020 项，配对 \(k\) 和 \(2021-k\)。<br>
+                                        \([\frac{5k}{2021}] + [\frac{5(2021-k)}{2021}] = [\frac{5k}{2021}] + [5 - \frac{5k}{2021}] = [\frac{5k}{2021}] + 5 + [-\frac{5k}{2021}]\)。<br>
+                                        由于 2021 不能被 5 整除，所以 \(\frac{5k}{2021}\) 不是整数。利用 \([x] + [-x] = -1\)（当 \(x\) 非整数时）。<br>
+                                        所以每一对的和为 \(5 - 1 = 4\)。<br>
+                                        共有 1010 对，和为 \(1010 \times 4 = 4040\)。<br>
+                                        最后第 2021 项：\([\frac{5 \times 2021}{2021}] = 5\)。<br>
+                                        总和 \(= 4040 + 5 = 4045\)。
+                                    </div>
+                                </details>
+                            </li>
+
+                            <li>已知 \(0 < a < 1\)，且满足 \([a + \frac{1}{\sqrt[3]{2024}}] + [a + \frac{2}{\sqrt[3]{2024}}] + \dots + [a + \frac{12}{\sqrt[3]{2024}}] = 8\)，则 \([2\sqrt[3]{2024}a]\) 的值可以为（ ）（多选）。（尖子登高 CMTS-2024）
+                                <div class="options-container">
+                                    <span>(A) 15</span>
+                                    <span>(B) 16</span>
+                                    <span>(C) 17</span>
+                                    <span>(D) 18</span>
+                                </div>
+                                <details><summary>点击查看提示与解答</summary>
+                                    <div class="solution-text">
+                                        <b>提示：</b>设 \(t = \sqrt[3]{2024}\)，估算 \(t\) 的范围。利用项数只有 12 项，分类讨论哪些项取整为 0，哪些为 1。<br>
+                                        <b>解答：</b>设 \(t = \sqrt[3]{2024}\)，\(12^3 = 1728, 13^3 = 2197\)，所以 \(12 < t < 13\)。<br>
+                                        因为 \(0 < a < 1\)，每一项 \([a + \frac{k}{t}]\) 只有两种可能：0 或 1。<br>
+                                        若要使得总和为 8，说明其中 8 项取值为 1，4 项取值为 0。<br>
+                                        当 \(k\) 较小时，\(\frac{k}{t} + a < 1 \Rightarrow k < t(1-a)\)，取整为 0。<br>
+                                        当 \(k\) 较大时，取整为 1。<br>
+                                        因为 \(t \approx 12.6\)，所以 \(\frac{12}{t} \approx \frac{12}{12.6} < 1\)。<br>
+                                        只有当 \(k\) 足够大，使得 \(\frac{k}{t} + a \ge 1\) 时，才会为 1。<br>
+                                        由于 \(k\) 从 1 到 12。若 \(a = 0.1\)，\(k/t \ge 0.9\)，\(k \ge 0.9t \approx 11.3\)，即 \(k=12\) 时取 1。不满足 8 项。<br>
+                                        要使 8 项取 1，则 \(k=5\) 到 \(12\) 取 1。此时 \(\frac{4}{t} + a < 1\) 且 \(\frac{5}{t} + a \ge 1\)。<br>
+                                        解得 \(1 - \frac{5}{t} \le a < 1 - \frac{4}{t}\)。<br>
+                                        此时 \(2ta\) 的范围是 \(2t - 10 \le 2ta < 2t - 8\)。<br>
+                                        因为 \(12 < t < 13\)，所以 \(24 < 2t < 26\)。<br>
+                                        所以 \(14 < 2t - 10 \le 2ta < 2t - 8 < 18\)。<br>
+                                        因此 \([2ta]\) 可能为 15, 16, 17。选 (A)(B)(C)。
+                                    </div>
+                                </details>
+                            </li>
+
+                            <li>\([x]\) 表示不超过 \(x\) 的最大整数，解方程 \(x^3 - [x] = 3\)。（复附 2023）
+                                <details><summary>点击查看提示与解答</summary>
+                                    <div class="solution-text">
+                                        <b>提示：</b>设 \([x] = k\)，则 \(x^3 = k+3\)。由 \(k \le x < k+1\) 建立不等式。<br>
+                                        <b>解答：</b>设 \([x] = k\)（\(k\) 为整数），则 \(x = \sqrt[3]{k+3}\)。<br>
+                                        根据取整定义：\(k \le \sqrt[3]{k+3} < k+1\)。<br>
+                                        即 \(k^3 \le k+3 < (k+1)^3\)。<br>
+                                        先看左边：\(k^3 - k - 3 \le 0\)。当 \(k=1\) 时，\(1-1-3 = -3 \le 0\)；当 \(k=2\) 时，\(8-2-3=3 > 0\)。所以 \(k \le 1\)。<br>
+                                        再看右边：\(k+3 < k^3+3k^2+3k+1 \Rightarrow k^3+3k^2+2k-2 > 0\)。当 \(k=0\) 时，\(-2 > 0\) 不成立；当 \(k=1\) 时，\(1+3+2-2=4 > 0\) 成立。所以 \(k \ge 1\)。<br>
+                                        综上，\(k=1\)。<br>
+                                        此时 \(x^3 = 1+3=4 \Rightarrow x = \sqrt[3]{4}\)。<br>
+                                        验证：\([\sqrt[3]{4}] = 1\)，成立。所以 \(x = \sqrt[3]{4}\)。
+                                    </div>
+                                </details>
+                            </li>
+
+                            <li>\([x]\) 为不大于 \(x\) 的最大整数，满足 \(\sqrt{x^2 - [x]^2} = 3 - x\) 的所有可能的 \(x\) 的值的和为 \(t\)，则 \([t] =\)____。（深圳中学 2025）
+                                <details><summary>点击查看提示与解答</summary>
+                                    <div class="solution-text">
+                                        <b>提示：</b>由被开方数非负及等式右侧非负，确定 \(x\) 的大致范围。两边平方后化简。<br>
+                                        <b>解答：</b>首先，\(3 - x \ge 0 \Rightarrow x \le 3\)。又因为左边根号下 \(x^2 - [x]^2 \ge 0\)，所以 \(x \ge 0\)。<br>
+                                        两边平方：\(x^2 - [x]^2 = (3-x)^2 = 9 - 6x + x^2\)。<br>
+                                        化简得：\([x]^2 = 6x - 9\)。<br>
+                                        设 \([x] = k\)，则 \(x = \frac{k^2+9}{6}\)。<br>
+                                        由 \(k \le x < k+1\) 得到：\(k \le \frac{k^2+9}{6} < k+1\)。<br>
+                                        左边：\(6k \le k^2+9 \Rightarrow k^2 - 6k + 9 \ge 0 \Rightarrow (k-3)^2 \ge 0\)，恒成立。<br>
+                                        右边：\(k^2+9 < 6k+6 \Rightarrow k^2 - 6k + 3 < 0\)。解得 \(3 - \sqrt{6} < k < 3 + \sqrt{6}\)。<br>
+                                        因为 \(\sqrt{6} \approx 2.45\)，所以 \(0.55 < k < 5.45\)。<br>
+                                        且 \(x \ge 0, x \le 3\)，所以 \(k = [x]\) 只能取 \(0, 1, 2, 3\)。<br>
+                                        当 \(k=0\)，\(x = 9/6 = 1.5\)。\([1.5]=1 \neq 0\)，舍去。<br>
+                                        当 \(k=1\)，\(x = 10/6 = 5/3 \approx 1.67\)。\([5/3]=1\)，符合。<br>
+                                        当 \(k=2\)，\(x = 13/6 \approx 2.17\)。\([13/6]=2\)，符合。<br>
+                                        当 \(k=3\)，\(x = 18/6 = 3\)。\([3]=3\)，符合。<br>
+                                        所以 \(x\) 的可能值为 \(\frac{5}{3}, \frac{13}{6}, 3\)。<br>
+                                        和为 \(t = \frac{10}{6} + \frac{13}{6} + \frac{18}{6} = \frac{41}{6}\)。所以 \([t] = [6.833...] = 6\)。
+                                    </div>
+                                </details>
+                            </li>
+
+                            <li>已知 \([x]\) 为不超过 \(x\) 的最大整数，解方程 \(x^2 - [x] = 3\)。（四校飞行考）
+                                <details><summary>点击查看提示与解答</summary>
+                                    <div class="solution-text">
+                                        <b>提示：</b>设 \([x]=k\)，\(x^2 = k+3\)。利用 \(k \le x < k+1\) 建立关于 \(k\) 的不等式。<br>
+                                        <b>解答：</b>设 \([x] = k\)，则 \(x^2 = k+3\)。所以 \(x = \pm\sqrt{k+3}\)。<br>
+                                        由 \(k \le x < k+1\)，由于 \(x^2 = k+3 > 0\)，所以 \(x\) 要么正要么负。<br>
+                                        若 \(x > 0\)，\(k \le \sqrt{k+3} < k+1 \Rightarrow k^2 \le k+3 < (k+1)^2\)。<br>
+                                        \(k^2-k-3 \le 0 \Rightarrow k \le 2\)；\(k^2+k-2 > 0 \Rightarrow k > 1\) 或 \(k < -2\)。所以 \(k=2\)。<br>
+                                        此时 \(x^2 = 5 \Rightarrow x = \sqrt{5}\)。\([\sqrt{5}] = 2\)，成立。<br>
+                                        若 \(x < 0\)，\(k \le -\sqrt{k+3} < k+1\)。<br>
+                                        这里 \(-\sqrt{k+3} \le -1\)，所以 \(k < 0\)。因为 \(k\) 是整数，\(k \le -1\)。<br>
+                                        由 \(k \le -\sqrt{k+3} \Rightarrow k^2 \ge k+3 \Rightarrow k^2-k-3 \ge 0\)，得 \(k \ge 3\) 或 \(k \le -1\)。<br>
+                                        由 \(-\sqrt{k+3} < k+1 \Rightarrow k+1 > 0 \Rightarrow k \ge 0\)（矛盾，因为 \(k<0\)）。或者如果两边平方，需要小心符号。<br>
+                                        直接看：\(- \sqrt{k+3} < k+1\)。由于右边 \(k+1 \le 0\)，所以左边负数大于右边负数。<br>
+                                        平方变号：\(k+3 > (k+1)^2 = k^2+2k+1 \Rightarrow k^2+k-2 < 0 \Rightarrow -2 < k < 1\)。<br>
+                                        结合 \(k \le -1\)，得到 \(k = -1\)。<br>
+                                        此时 \(x^2 = 2 \Rightarrow x = -\sqrt{2}\)。\([-\sqrt{2}] = [-1.414] = -2\)，不等于 \(-1\)，矛盾。<br>
+                                        所以原方程的解只有 \(x = \sqrt{5}\)。
+                                    </div>
+                                </details>
+                            </li>
+
+                            <li>求不等式 \([x^2] - 3[x] - 10 \le 0\) 的解集。（华二紫竹 2024）
+                                <details><summary>点击查看提示与解答</summary>
+                                    <div class="solution-text">
+                                        <b>提示：</b>设 \([x]=k\)，利用 \([x^2] \ge [x]^2 = k^2\) 以及 \([x^2] \le x^2\) 建立关于 \(k\) 的不等式组。<br>
+                                        <b>解答：</b>设 \([x] = k\)，则 \(k^2 \le [x^2] \le x^2 < (k+1)^2\)。<br>
+                                        原不等式化为 \([x^2] \le 3k+10\)。<br>
+                                        因为 \(k^2 \le [x^2]\)，所以 \(k^2 - 3k - 10 \le 0\)，解得 \(-2 \le k \le 5\)。<br>
+                                        对于每个 \(k \in [-2, 5]\)，\(x\) 的范围是 \([k, k+1)\)，且需满足 \([x^2] \le 3k+10\)。<br>
+                                        等价于 \(x^2 < 3k+11\)。<br>
+                                        所以我们只需解不等式组：\(k \le x < k+1\) 且 \(x^2 < 3k+11\)，\(k \in \{-2, -1, 0, 1, 2, 3, 4, 5\}\)。<br>
+                                        - 若 \(k=-2\)：\(x \in [-2, -1)\)，\(x^2 < 5 \Rightarrow x \in (-\sqrt{5}, \sqrt{5})\)。交集为 \((-\sqrt{5}, -1)\)。<br>
+                                        - 若 \(k=-1\)：\(x \in [-1, 0)\)，\(x^2 < 8\)。交集为 \([-1, 0)\)。<br>
+                                        - 若 \(k=0\)：\(x \in [0, 1)\)，\(x^2 < 11\)。交集为 \([0, 1)\)。<br>
+                                        - 若 \(k=1\)：\(x \in [1, 2)\)，\(x^2 < 14\)。交集为 \([1, 2)\)。<br>
+                                        - 若 \(k=2\)：\(x \in [2, 3)\)，\(x^2 < 17\)。交集为 \([2, 3)\)。<br>
+                                        - 若 \(k=3\)：\(x \in [3, 4)\)，\(x^2 < 20\)。交集为 \([3, \sqrt{20})\)，即 \([3, 2\sqrt{5})\)。<br>
+                                        - 若 \(k=4\)：\(x \in [4, 5)\)，\(x^2 < 23\)。交集为 \([4, \sqrt{23})\)。<br>
+                                        - 若 \(k=5\)：\(x \in [5, 6)\)，\(x^2 < 26\)。交集为 \([5, \sqrt{26})\)。<br>
+                                        最终解集为：\((-\sqrt{5}, -1) \cup [-1, 0) \cup [0, 1) \cup [1, 2) \cup [2, 3) \cup [3, 2\sqrt{5}) \cup [4, \sqrt{23}) \cup [5, \sqrt{26})\)。<br>
+                                        （化简即 \((-\sqrt{5}, -1) \cup [-1, 2\sqrt{5}) \cup [4, \sqrt{23}) \cup [5, \sqrt{26})\)）。
+                                    </div>
+                                </details>
+                            </li>
+
+                            <li>定义 \([x]\) 表示不超过 \(x\) 的最大整数，如 \([2.3]=2, [-0.4]=-1\)。<br>
+                                (1) 若 \(0 < x < 4\)，解方程：\(x^2 - 2[x] - x = 0\)；<br>
+                                (2) 求所有的实数 \(x\)，使得 \([x^3] = 4x + 3\)。（复附 2015）
+                                <details><summary>点击查看提示与解答</summary>
+                                    <div class="solution-text">
+                                        <b>(1) 提示：</b>左边 \(x^2-x = 2[x]\) 是整数，所以 \(x\) 必须是整数。<br>
+                                        <b>(1) 解答：</b>因为 \(2[x]\) 是整数，所以 \(x^2-x\) 必须是整数。因为 \(x \in (0, 4)\)，解得 \(x\) 只能是整数，即 \(x=1, 2, 3\)。<br>
+                                        代入检验：\(x=1\)，\(1-2-1 = -2 \neq 0\)；\(x=2\)，\(4-4-2 = -2 \neq 0\)；\(x=3\)，\(9-6-3 = 0\)。所以 \(x=3\)。<br><br>
+                                        <b>(2) 提示：</b>将 \(4x+3 \le x^3 < 4x+4\) 转化为求三次函数零点的问题。<br>
+                                        <b>(2) 解答：</b>由题意 \(4x+3 \le x^3 < 4x+4\)。<br>
+                                        先解 \(x^3 - 4x - 3 \ge 0 \Rightarrow (x-2)(x+1)^2 \ge 0 \Rightarrow x \ge 2\) 或 \(x = -1\)。<br>
+                                        再解 \(x^3 - 4x - 4 < 0\)。令 \(f(x) = x^3 - 4x - 4\)。\(f(2) = -4 < 0\)，\(f(2.5) = 15.625 - 10 - 4 = 1.625 > 0\)。<br>
+                                        根据零点定理，存在 \(x_0 \in (2, 2.5)\) 使得 \(f(x_0)=0\)。所以解为 \(x < x_0\)。<br>
+                                        综上，解集为 \(x \in [2, x_0)\) 或 \(x=-1\)。<br>
+                                        检验 \(x=-1\)：\([(-1)^3] = -1\)。\(4(-1)+3 = -1\)。等式成立。<br>
+                                        所以 \(x = -1\) 以及 \(x \in [2, x_0)\)，其中 \(x_0\) 是 \(x^3-4x-4=0\) 的唯一大于 2 的实根（约 2.38）。
+                                    </div>
+                                </details>
+                            </li>
+
+                            <li>在 \([\frac{1^2}{2024}], [\frac{2^2}{2024}], \dots, [\frac{2024^2}{2024}]\) 这 2024 个数中，有____个互不相等的整数。（交大附中 2024）
+                                <details><summary>点击查看提示与解答</summary>
+                                    <div class="solution-text">
+                                        <b>提示：</b>计算相邻两项之差 \(\frac{(k+1)^2}{2024} - \frac{k^2}{2024} = \frac{2k+1}{2024}\)。当这个差小于 1 时，有可能两项取整相等。<br>
+                                        <b>解答：</b>设 \(a_k = [\frac{k^2}{2024}]\)。<br>
+                                        计算相邻两项的差 \(\Delta = \frac{(k+1)^2}{2024} - \frac{k^2}{2024} = \frac{2k+1}{2024}\)。<br>
+                                        当 \(2k+1 < 2024\) 即 \(k \le 1011\) 时，\(\Delta < 1\)。这意味着在 \(k \in [1, 1011]\) 期间，\(a_{k+1} - a_k\) 只能是 0 或 1。<br>
+                                        因为 \(a_1 = [\frac{1}{2024}] = 0\)，而 \(a_{1012} = [\frac{1012^2}{2024}] = 506\)。<br>
+                                        这说明前 1012 项中，数值从 0 变到 506，且每次最多增加 1。因此，这 1012 项必然取遍了 \(0, 1, 2, \dots, 506\) 的所有整数，共有 <b>507</b> 个不同的值。<br>
+                                        当 \(k \ge 1012\) 时，\(\Delta = \frac{2k+1}{2024} > 1\)。这意味着从 \(a_{1013}\) 开始，每一项都严格大于前一项。<br>
+                                        所以剩下的 \(2024 - 1012 = 1012\) 项，不仅它们之间互不相同，而且都大于 \(a_{1012}=506\)，与前面的 507 个值也绝不重复。<br>
+                                        因此，总共互不相等的整数有 \(507 + 1012 = \mathbf{1519}\) 个。
+                                    </div>
+                                </details>
+                            </li>
+
+                            <li>设 \([x]\) 表示不超过实数 \(x\) 的最大整数，如 \([3.2]=3, [-2.3]=-3\)，则在平面上，有满足条件 \([x]^2 + [y]^2 = 50\) 的点 \(P(x,y)\) 所形成的图形的面积等于（ ）。（尖子登高 CMTS-2025）
+                                <div class="options-container">
+                                    <span>(A) 24</span>
+                                    <span>(B) 12</span>
+                                    <span>(C) 8</span>
+                                    <span>(D) 3</span>
+                                </div>
+                                <details><summary>点击查看提示与解答</summary>
+                                    <div class="solution-text">
+                                        <b>提示：</b>先求出所有的整数对 \(([x], [y])\)，每个整数对对应一个 \(1 \times 1\) 的正方形。<br>
+                                        <b>解答：</b>因为 \(x, y\) 为实数，所以 \(u = [x], v = [y]\) 为整数。<br>
+                                        解方程 \(u^2 + v^2 = 50\)。<br>
+                                        50 以内的平方数有 \(0, 1, 4, 9, 16, 25, 36, 49\)。<br>
+                                        只有 \(49+1 = 50\) 和 \(25+25 = 50\)。<br>
+                                        所以 \((u,v)\) 的组合有：<br>
+                                        \((\pm 7, \pm 1)\) 共 \(2 \times 2 = 4\) 种；<br>
+                                        \((\pm 1, \pm 7)\) 共 \(2 \times 2 = 4\) 种；<br>
+                                        \((\pm 5, \pm 5)\) 共 \(2 \times 2 = 4\) 种。<br>
+                                        总共有 \(4+4+4 = 12\) 个整数对。<br>
+                                        每一对 \((u,v)\) 对应的区域为 \(u \le x < u+1, v \le y < v+1\)，这是一个边长为 1，面积为 1 的正方形。<br>
+                                        由于这 12 个正方形互不重叠，所以总面积是 \(12 \times 1 = 12\)。选 (B)。
+                                    </div>
+                                </details>
+                            </li>
+
+                            <li>\([x]\) 表示不超过 \(x\) 的最大整数。\(M = \sqrt{[\sqrt{x}]}, N = [\sqrt[4]{x}]\)（\(x\) 为实数）。当 \(x \ge 1\) 时，\(M, N\) 的大小关系为（ ）。（曹杨二中 2016）
+                                <div class="options-container">
+                                    <span>(A) \(M \ge N\)</span>
+                                    <span>(B) \(M = N\)</span>
+                                    <span>(C) \(M < N\)</span>
+                                    <span>(D) \(M \le N\)</span>
+                                </div>
+                                <details><summary>点击查看提示与解答</summary>
+                                    <div class="solution-text">
+                                        <b>提示：</b>设 \(k = [\sqrt{x}]\)，则 \(k \le \sqrt{x} < k+1\)。借助中间量推导 \(M\) 和 \(N\) 的关系。<br>
+                                        <b>解答：</b>设 \(N = m\)，则由 \(N = [\sqrt[4]{x}]\) 得 \(m \le \sqrt[4]{x} < m+1\)。<br>
+                                        平方两次得到：\(m^2 \le \sqrt{x} < (m+1)^2\)。<br>
+                                        因为 \([\sqrt{x}]\) 表示不超过 \(\sqrt{x}\) 的最大整数，而 \(\sqrt{x} \ge m^2\)，所以 \([\sqrt{x}] \ge m^2\)。<br>
+                                        所以 \(M = \sqrt{[\sqrt{x}]} \ge \sqrt{m^2} = m = N\)。<br>
+                                        即 \(M \ge N\)。选 (A)。
+                                    </div>
+                                </details>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. 容斥原理 -->
+            <div class="acc-item">
+                <div class="acc-header" onclick="toggleAccordion(this)">4. 辅助工具：容斥原理</div>
+                <div class="acc-content">
+                    <div class="sub-title">一、直观理解：“叠饺子皮”</div>
+                    <p>当我们在数数时，如果直接相加，会重复计算交集的部分，这时候就需要“减去”重复的。如果减多了，又要“加”回来。这就是容斥原理的核心思想。</p>
+                    
+                    <!-- 韦恩图 SVG -->
+                    <div class="graph-container">
+                        <svg width="600" height="200" viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+                            <!-- 2个集合 -->
+                            <circle cx="100" cy="100" r="60" fill="#e74c3c" fill-opacity="0.2" stroke="#e74c3c" stroke-width="2" />
+                            <circle cx="160" cy="100" r="60" fill="#2ecc71" fill-opacity="0.2" stroke="#2ecc71" stroke-width="2" />
+                            <text x="70" y="105" font-family="Times New Roman" font-size="20" font-style="italic">A</text>
+                            <text x="170" y="105" font-family="Times New Roman" font-size="20" font-style="italic">B</text>
+                            <text x="50" y="185" font-family="Times New Roman" font-size="16">|A ∪ B| = |A| + |B| - |A ∩ B|</text>
+
+                            <!-- 3个集合 -->
+                            <circle cx="350" cy="80" r="50" fill="#3498db" fill-opacity="0.2" stroke="#3498db" stroke-width="2" />
+                            <circle cx="310" cy="130" r="50" fill="#e74c3c" fill-opacity="0.2" stroke="#e74c3c" stroke-width="2" />
+                            <circle cx="390" cy="130" r="50" fill="#2ecc71" fill-opacity="0.2" stroke="#2ecc71" stroke-width="2" />
+                            <text x="340" y="70" font-family="Times New Roman" font-size="18" font-style="italic">A</text>
+                            <text x="290" y="145" font-family="Times New Roman" font-size="18" font-style="italic">B</text>
+                            <text x="400" y="145" font-family="Times New Roman" font-size="18" font-style="italic">C</text>
+                            <text x="450" y="110" font-family="Times New Roman" font-size="14">|A ∪ B ∪ C| = |A| + |B| + |C|</text>
+                            <text x="450" y="130" font-family="Times New Roman" font-size="14">- |A∩B| - |B∩C| - |C∩A|</text>
+                            <text x="450" y="150" font-family="Times New Roman" font-size="14">+ |A∩B∩C|</text>
+                        </svg>
+                    </div>
+
+                    <div class="sub-title">二、一般形式（严谨定义）</div>
+                    <p>设 \(A_1, A_2, \dots, A_n\) 为有限集合，则它们的并集元素个数为：</p>
+                    <div class="math-display">
+                        \[
+ \left| \bigcup_{i=1}^n A_i \right| = \sum_{i=1}^n |A_i| - \sum_{1 \le i < j \le n} |A_i \cap A_j| + \sum_{1 \le i < j < k \le n} |A_i \cap A_j \cap A_k| - \dots + (-1)^{n-1} |A_1 \cap \dots \cap A_n| 
+\]
+                    </div>
+
+                    <div class="sub-title">三、简单例子</div>
+                    <div class="content-box">
+                        <p><b>题目：</b>1～100中能被 2 或 3 整除的整数的个数有多少个？</p>
+                        <p><b>解：</b><br>
+                        设 \(A\) 为能被 2 整除的数的集合，则 \(|A| = \lfloor \frac{100}{2} \rfloor = 50\)。<br>
+                        设 \(B\) 为能被 3 整除的数的集合，则 \(|B| = \lfloor \frac{100}{3} \rfloor = 33\)。<br>
+                        \(A \cap B\) 代表能被 6 整除的数的集合，所以 \(|A \cap B| = \lfloor \frac{100}{6} \rfloor = 16\)。<br>
+                        根据容斥原理：\(|A \cup B| = |A| + |B| - |A \cap B| = 50 + 33 - 16 = 67\) 个。</p>
+                    </div>
+
+                    <div class="sub-title">四、数论中的经典应用</div>
+                    <p>推导**欧拉函数**：在 \(1\) 到 \(n\) 中，与 \(n\) 不互素的数，必定是 \(n\) 的某个质因数 \(p_i\) 的倍数。利用容斥原理把它们扣掉，就可以推导出 \(\varphi(n)\) 的计算公式。</p>
+
+                    <div class="sub-title">五、实战习题</div>
+                    <div class="exercise-box">
+                        <ol>
+                            <li>求 1 到 100 中，不能被 2 整除，也不能被 3 整除，也不能被 5 整除的数的个数。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    设全集 \(U\) 为 1 到 100。<br>
+                                    \(|A| = 50\) (2的倍数)，\(|B| = 33\) (3的倍数)，\(|C| = 20\) (5的倍数)。<br>
+                                    \(|A \cap B| = 16\) (6的倍数)，\(|A \cap C| = 10\) (10的倍数)，\(|B \cap C| = 6\) (15的倍数)。<br>
+                                    \(|A \cap B \cap C| = 3\) (30的倍数)。<br>
+                                    能被 2 或 3 或 5 整除的个数 = \(50 + 33 + 20 - 16 - 10 - 6 + 3 = 74\)。<br>
+                                    所以不能被它们整除的个数 = \(100 - 74 = 26\) 个。
+                                </div></details>
+                            </li>
+                            <li>【中等题】求 1 到 1000 中，不能被 3、5、7 中任何一个数整除的整数的个数。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    设 \(A\) 为 3 的倍数，\(B\) 为 5 的倍数，\(C\) 为 7 的倍数。<br>
+                                    \(|A| = \lfloor 1000/3 \rfloor = 333\)；<br>
+                                    \(|B| = \lfloor 1000/5 \rfloor = 200\)；<br>
+                                    \(|C| = \lfloor 1000/7 \rfloor = 142\)。<br>
+                                    交集：<br>
+                                    \(|A \cap B|\) (15的倍数) = \(\lfloor 1000/15 \rfloor = 66\)；<br>
+                                    \(|A \cap C|\) (21的倍数) = \(\lfloor 1000/21 \rfloor = 47\)；<br>
+                                    \(|B \cap C|\) (35的倍数) = \(\lfloor 1000/35 \rfloor = 28\)。<br>
+                                    三个集合的交集 \(|A \cap B \cap C|\) (105的倍数) = \(\lfloor 1000/105 \rfloor = 9\)。<br>
+                                    根据容斥原理：能被 3 或 5 或 7 整除的个数为：<br>
+                                    \(|A \cup B \cup C| = 333 + 200 + 142 - 66 - 47 - 28 + 9 = 543\)。<br>
+                                    所以不能被它们任何一个整除的个数为：\(1000 - 543 = 457\)。
+                                </div></details>
+                            </li>
+                            <li>【高级题/高联难度】在 1, 2, ..., 1000 中，能被 7 整除，但不能被 2、3、5 中任何一个数整除的整数有多少个？
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    设全集 \(S\) 为 1 到 1000 中能被 7 整除的集合。\(|S| = \lfloor 1000/7 \rfloor = 142\)。<br>
+                                    设 \(A_2, A_3, A_5\) 分别为 \(S\) 中能被 2, 3, 5 整除的集合。<br>
+                                    \(|A_2| = \lfloor 1000/14 \rfloor = 71\)。<br>
+                                    \(|A_3| = \lfloor 1000/21 \rfloor = 47\)。<br>
+                                    \(|A_5| = \lfloor 1000/35 \rfloor = 28\)。<br>
+                                    \(|A_2 \cap A_3| = \lfloor 1000/42 \rfloor = 23\)。<br>
+                                    \(|A_2 \cap A_5| = \lfloor 1000/70 \rfloor = 14\)。<br>
+                                    \(|A_3 \cap A_5| = \lfloor 1000/105 \rfloor = 9\)。<br>
+                                    \(|A_2 \cap A_3 \cap A_5| = \lfloor 1000/210 \rfloor = 4\)。<br>
+                                    能被 2,3,5 至少一个整除的：\(|A_2 \cup A_3 \cup A_5| = 71 + 47 + 28 - 23 - 14 - 9 + 4 = 104\)。<br>
+                                    所以既被 7 整除，又不能被 2,3,5 整除的有：\(142 - 104 = 38\) 个。
+                                </div></details>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. 鸽巢原理 -->
+            <div class="acc-item">
+                <div class="acc-header" onclick="toggleAccordion(this)">5. 辅助工具：鸽巢原理 (抽屉原理)</div>
+                <div class="acc-content">
+                    <div class="sub-title">一、最朴素的形式</div>
+                    <p>如果把 \(n+1\) 个物体放进 \(n\) 个盒子里，那么至少有一个盒子里面装了至少 2 个物体。</p>
+                    <p>这看似是一句废话，但它是数论中解决“存在性证明”的终极武器。</p>
+
+                    <div class="sub-title">二、数论中的经典应用</div>
+                    <div class="content-box" style="border-left-color: #f39c12;">
+                        <p><b>定理：</b>任取 \(n+1\) 个整数，其中必定存在两个整数，它们的差是 \(n\) 的倍数。</p>
+                        <p><b>证明：</b><br>
+                        对于任意一个整数，它除以 \(n\) 的余数只有 \(n\) 种可能（即 \(0, 1, 2, \dots, n-1\)）。这就相当于 \(n\) 个“抽屉”。<br>
+                        现在我们有 \(n+1\) 个整数（相当于 \(n+1\) 个苹果）。<br>
+                        根据鸽巢原理，必定至少有两个整数落在同一个“抽屉”里，即它们模 \(n\) 同余。它们的差自然是 \(n\) 的倍数。</p>
+                    </div>
+
+                    <!-- 狄利克雷证明折叠面板 -->
+                    <details>
+                        <summary>🔥 高阶拓展：狄利克雷的丢番图逼近定理（大神之作）</summary>
+                        <div style="padding: 10px 0;">
+                            <p><b>问题引入：</b>假设 \(d\) 是一个非完全平方数的正整数，证明：存在无穷多个正整数对 \((x, y)\) 使得 \(|x - \sqrt{d}y| < \frac{1}{y}\)。</p>
+                            <p><b>神级思路：</b>直接证明太难，我们考虑寻找 2 个不同倍数 \(\sqrt{d}\) 的数，使它们的小数部分差非常小。</p>
+                            <div class="proof-step" style="border-left-color: #f39c12;">
+                                <b>证明过程：</b><br>
+                                设大整数 \(Y\)，考虑 \(0\sqrt{d}, 1\sqrt{d}, 2\sqrt{d}, \dots, Y\sqrt{d}\)，将它们写成“整数 + 小数”的形式：<br>
+                                \(k\sqrt{d} = N_k + f_k\)，其中 \(N_k\) 为整数，\(0 \le f_k < 1\)。<br><br>
+                                <b>构造鸽子和鸽笼！</b><br>
+                                这里有 \(Y+1\) 个小数部分 \(f_0, f_1, \dots, f_Y\)（\(Y+1\) 个鸽子）。<br>
+                                我们将区间 \([0, 1)\) 均分为 \(Y\) 份（\(Y\) 个鸽笼）：<br>
+                                第 1 个鸽笼：\(0 \le t < \frac{1}{Y}\)<br>
+                                第 2 个鸽笼：\(\frac{1}{Y} \le t < \frac{2}{Y}\)<br>
+                                \(\dots\)<br>
+                                第 \(Y\) 个鸽笼：\(\frac{Y-1}{Y} \le t < \frac{Y}{Y}\)<br><br>
+                                根据鸽巢原理，必定有两只鸽子（比如 \(f_m\) 和 \(f_n\)）落在同一个鸽笼里。那么它们的差值一定小于 \(\frac{1}{Y}\)：<br>
+                                \[
+ |f_m - f_n| < \frac{1}{Y} 
+\]
+                                代入 \(f_m = m\sqrt{d} - N_m\) 和 \(f_n = n\sqrt{d} - N_n\)，可得：<br>
+                                \[
+ |(N_n - N_m) - (n - m)\sqrt{d}| < \frac{1}{Y} 
+\]
+                                不妨设 \(n > m\)，且 \(n, m \le Y\)。令 \(y = n - m\)，显然 \(0 < y \le Y\)。令 \(x = N_n - N_m\)。<br>
+                                则有：<br>
+                                \[
+ |x - y\sqrt{d}| < \frac{1}{Y} \le \frac{1}{y} 
+\]
+                                <b>得证！！</b>
+                            </div>
+                            <p style="margin-top:10px;"><b>总结：</b>这个构造的精妙之处在于用了两个倍数的差，把“原命题的足够小”转化为“\(\sqrt{d}\) 的两个不同倍数的差足够小”，化腐朽为神奇。</p>
+                        </div>
+                    </details>
+
+                    <div class="sub-title">三、实战习题</div>
+                    <div class="exercise-box">
+                        <ol>
+                            <li>证明：在任意 5 个整数中，必定能选出 3 个数，它们的和能被 3 整除。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    任何整数除以 3 的余数只能是 0, 1, 2。这就构成了 3 个“抽屉”。<br>
+                                    现在有 5 个整数。根据鸽巢原理（\(5 \div 3 = 1 \dots 2\)），我们可以分情况讨论：<br>
+                                    <b>情况一：</b> 如果这 5 个数中，有三个数除以 3 的余数相同。那么这三个数的和模 3 就相当于 \(1+1+1=3 \equiv 0\)，能被 3 整除。<br>
+                                    <b>情况二：</b> 如果最多只有两个数余数相同，那么意味着 3 个抽屉都有数（因为总共 5 个数）。那我们就直接从每个抽屉里各挑一个数（分别余 0, 1, 2）。它们的和模 3 就是 \(0+1+2=3 \equiv 0\)，也能被 3 整除。<br>
+                                    综合以上，结论成立。
+                                </div></details>
+                            </li>
+                            <li>【中等题】在边长为 2 的正方形内任意放置 5 个点，证明：必定存在两个点，它们之间的距离不大于 \(\sqrt{2}\)。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    将边长为 2 的正方形等分为 4 个边长为 1 的小正方形。这 4 个小正方形就相当于 4 个“抽屉”。<br>
+                                    现在正方形内共有 5 个点（相当于 5 个苹果）。<br>
+                                    根据鸽巢原理，必定至少有 2 个点落在同一个小正方形内（包括边界）。<br>
+                                    而在一个边长为 1 的正方形内，任意两点之间的最大距离就是它的对角线长度，即 \(\sqrt{1^2 + 1^2} = \sqrt{2}\)。<br>
+                                    所以这两个点之间的距离必定不大于 \(\sqrt{2}\)。
+                                </div></details>
+                            </li>
+                            <li>【高级题/CMO经典】证明：任取 \(n+1\) 个不超过 \(2n\) 的正整数，其中必定存在两个数，使得其中一个能被另一个整除。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    考虑这 \(n+1\) 个数的质因数分解。我们可以把每个数写成 \(a_i = 2^{k_i} \cdot m_i\) 的形式，其中 \(m_i\) 是奇数。<br>
+                                    因为 \(a_i \le 2n\)，所以它的奇数部分 \(m_i\) 也必然不超过 \(2n\)。<br>
+                                    在 \(1\) 到 \(2n\) 之间，奇数有 \(1, 3, 5, \dots, 2n-1\)，恰好共有 \(n\) 个。<br>
+                                    这就相当于 \(n\) 个“抽屉”（奇数值）。<br>
+                                    现在我们有 \(n+1\) 个数，每个数都能提出一个奇数部分 \(m_i\)。根据鸽巢原理，必定至少有两个数，它们的奇数部分相同，设这两个数为 \(a_p\) 和 \(a_q\)，它们的奇数部分都是 \(m\)。<br>
+                                    那么 \(a_p = 2^{k_p} \cdot m\)，\(a_q = 2^{k_q} \cdot m\)。<br>
+                                    如果 \(k_p \le k_q\)，那么 \(a_p\) 就能整除 \(a_q\)；如果 \(k_q \le k_p\)，那么 \(a_q\) 就能整除 \(a_p\)。<br>
+                                    不论哪种情况，都必定存在一个数能被另一个数整除。证毕。
+                                </div></details>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ================= 脚本 ================= -->
+    <script>
+        window.addEventListener('load', () => {
+            if (window.MathJax) MathJax.typesetPromise().catch(err => console.log(err.message));
+        });
+
+        // 手风琴折叠展开逻辑
+        function toggleAccordion(header) {
+            header.classList.toggle('active');
+            let content = header.nextElementSibling;
+            if (content.style.display === "block") {
+                content.style.display = "none";
+            } else {
+                content.style.display = "block";
+                if (window.MathJax) MathJax.typesetPromise([content]).catch(err => console.log(err.message));
+            }
+        }
+    </script>
+</body>
+</html>

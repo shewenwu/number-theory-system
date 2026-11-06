@@ -1,0 +1,940 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数论六大定理</title>
+    <script>
+        window.MathJax = {
+            tex: { 
+                inlineMath: [['$', '$'], ['\\(', '\\)']], 
+                displayMath: [['$$', '$$'], ['\\[', '\\]']], 
+                processEscapes: true 
+            },
+            options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] },
+            startup: { typeset: false }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        /* ================= 基础与公共样式 ================= */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, 'Microsoft YaHei'; background-color: #f4f7f6; color: #333; line-height: 1.8; }
+
+        /* 新增的返回主页按钮样式 */
+        .btn-back {
+            background-color: transparent;
+            color: #ecf0f1 !important;
+            border: 1px solid #ecf0f1 !important;
+            margin-left: 20px;
+        }
+        .btn-back:hover {
+            background-color: #ecf0f1;
+            color: #2c3e50 !important;
+        }
+        /* 顶部导航栏 (蓝色主题) */
+        header { background-color: #2c3e50; padding: 1rem 0; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        nav a { display: inline-block; text-decoration: none; border: 2px solid transparent; color: #bdc3c7; padding: 10px 25px; margin: 0 10px; font-size: 16px; border-radius: 25px; transition: all 0.3s; font-weight: bold; }
+        nav a:hover { color: #ecf0f1; }
+        nav a.active-theorems { background-color: #3498db; color: #fff; cursor: default; pointer-events: none; }
+
+        .container { max-width: 1200px; margin: 3rem auto; padding: 0 1rem; }
+        
+        /* 大标题 */
+        .section-title { text-align: center; margin-bottom: 2.5rem; color: #2c3e50; font-size: 2rem; display: inline-block; left: 50%; position: relative; transform: translateX(-50%); }
+        .section-title::after { content: ''; display: block; width: 60%; height: 4px; margin: 10px auto 0; border-radius: 2px; background-color: #3498db; }
+
+        /* ================= 手风琴样式 ================= */
+        .accordion { display: flex; flex-direction: column; gap: 15px; }
+        .acc-item { background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 3px 10px rgba(0,0,0,0.04); }
+        .acc-header { background: #fff; padding: 20px 25px; font-size: 1.15rem; font-weight: bold; color: #2c3e50; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.3s; border-left: 5px solid transparent; }
+        .acc-header:hover { background: #f8f9fa; border-left-color: #3498db; }
+        .acc-header.active { background: #f4f8fb; border-left-color: #3498db; color: #2980b9; }
+        .acc-header::after { content: '+'; font-size: 22px; color: #95a5a6; }
+        .acc-header.active::after { content: '−'; color: #3498db; }
+        
+        .acc-content { display: none; padding: 0 25px 25px 25px; border-top: 1px solid #ecf0f1; }
+        .acc-content.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ================= 内部元素样式 ================= */
+        .sub-title { font-size: 1.15rem; color: #2980b9; margin: 25px 0 10px 0; padding-left: 10px; border-left: 4px solid #2980b9; font-weight: bold;}
+        .content-box { background: #fdfbf7; border-left: 4px solid #f39c12; padding: 20px; border-radius: 6px; margin-top: 15px; margin-bottom: 20px; }
+        
+        /* 习题相关样式 & 折叠面板样式 */
+        .exercise-box { background: #f4fbf7; border: 1px solid #c8e6c9; border-left: 4px solid #2ecc71; padding: 20px; border-radius: 6px; margin-top: 20px; }
+        .exercise-box ol { padding-left: 20px; margin-top: 10px; }
+        .exercise-box li { margin-bottom: 15px; font-weight: 500; }
+        
+        details { background: #fff; border: 1px dashed #bdc3c7; border-radius: 6px; padding: 10px 15px; margin-top: 15px; cursor: pointer; transition: all 0.2s; }
+        details:hover { border-color: #3498db; background: #f8fbff; }
+        summary { font-weight: bold; color: #2980b9; font-size: 1.05rem; outline: none; }
+        details[open] summary { margin-bottom: 15px; color: #3498db; border-bottom: 1px dashed #ecf0f1; padding-bottom: 10px; }
+        .solution-text { font-size: 0.95rem; color: #34495e; padding-left: 10px; border-left: 3px solid #ecf0f1; }
+
+        .proof-step { margin-bottom: 8px; padding-left: 10px; border-left: 2px solid #f39c12; color: #555; }
+        .math-display { text-align: center; margin: 15px 0; font-size: 1.1rem; overflow-x: auto; }
+        .theorem-red { color: #e74c3c; font-weight: bold; }
+        .substitute-red { color: #e74c3c; font-size: 0.9em; }
+        .align-formula { padding-left: 20px; margin: 10px 0; font-family: 'Times New Roman', serif; }
+        
+        /* 人员信息表格 */
+        .modal-info-table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .modal-info-table th, .modal-info-table td { border: 1px solid #ecf0f1; padding: 12px 15px; text-align: left; font-size: 0.95rem; }
+        .modal-info-table th { background-color: #f8f9fa; width: 20%; color: #2c3e50; font-weight: bold; }
+        .modal-info-table td { color: #555; }
+
+        /* 杨辉三角样式 (蓝色系调整) */
+        .pascal-triangle-container { overflow-x: auto; padding: 20px; margin: 15px 0; background: #fafafa; border: 1px solid #eee; border-radius: 8px; display: flex; justify-content: center; }
+        .pascal-row { display: flex; justify-content: center; margin-bottom: 4px; }
+        .pascal-cell { width: 35px; height: 35px; display: flex; justify-content: center; align-items: center; margin: 0 2px; border-radius: 50%; font-size: 0.9rem; font-weight: bold; color: #555; background: #e0e0e0; cursor: default; transition: all 0.2s; position: relative; }
+        .pascal-cell:hover { transform: scale(1.2); background: #3498db; color: #fff; z-index: 10; }
+        .pascal-row.prime-row .pascal-cell { background: #d6eaf8; color: #2980b9; }
+        .pascal-row.prime-row .pascal-cell.edge { background: #bdc3c7; color: #555; }
+        .pascal-cell::after { content: attr(data-tip); position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.75); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+        .pascal-cell:hover::after { opacity: 1; }
+    </style>
+</head>
+<body>
+    <header>
+<nav>
+    <a href="#" class="active-theorems">数论六大定理</a>
+    <a href="../index.html" style="display:inline-block; text-decoration:none; border:1px solid #ecf0f1; color:#bdc3c7; padding:8px 20px; margin:0 10px; border-radius:25px; font-weight:bold;">🏠 返回主页</a>
+</nav>
+    </header>
+
+    <div class="container">
+        <h2 class="section-title">数论六大定理</h2>
+        
+        <div class="accordion">
+            
+            <!-- 定理1：算术基本定理 -->
+            <div class="acc-item">
+                <div class="acc-header" onclick="toggleAccordion(this)">1. 算术基本定理 (唯一分解定理)</div>
+                <div class="acc-content">
+                    <table class="modal-info-table">
+                        <tr><th>人物</th><td>欧几里得 (Euclid)</td></tr>
+                        <tr><th>国家</th><td>古希腊</td></tr>
+                        <tr><th>时间</th><td>公元前 350 年</td></tr>
+                        <tr><th>职业</th><td>数学家，被称为“几何之父”</td></tr>
+<tr>
+    <th>人物传记</th>
+    <td style="line-height: 1.8; text-align: justify;">
+        <p style="margin-bottom: 8px;">欧几里得是古希腊的传奇数学家，被后世尊称为“几何之父”。他在亚历山大里亚的柏拉图学园里，用极其严密的逻辑创立了宏大的欧几里得几何学体系。</p>
+        <p style="margin-bottom: 8px;">传说，当时的托勒密国王觉得学几何太难，问欧几里得有没有专供国王走的“捷径”，欧几里得毫不留情地回怼：“<strong>在几何学里，没有专为国王铺设的大道！</strong>”</p>
+        <p style="margin-bottom: 0;">正是这种偏执的严谨，让他在《几何原本》中，不仅构建了空间的美学，还极其优雅地用反证法（假设素数有限，相乘加 1）证明了“素数有无穷多个”，并用“欧几里得引理”为“算术基本定理”打下了最坚不可摧的地基。</p>
+    </td>
+</tr>
+                    </table>
+                    
+                    <div class="sub-title">定理内容</div>
+                    <p>任何一个大于 \(1\) 的自然数 \(N\)，都可以唯一分解成有限个素数的乘积。即：</p>
+                    <div class="math-display">\[
+N = p_1^{a_1} p_2^{a_2} \dots p_k^{a_k}
+\]</div>
+                    <p>其中 \(p_1 < p_2 < \dots < p_k\) 为素数，\(a_1, a_2, \dots, a_k\) 为正整数。如果不计素因子的排列顺序，这种分解是唯一的。</p>
+                    
+                    <div class="sub-title">定理证明（存在性与唯一性）</div>
+                    <div class="proof-step">
+                        <strong>第一部分：存在性（利用良序原理/反证法）</strong><br>
+                        假设存在大于 \(1\) 的整数不能分解为素数的乘积。根据良序原理，必定存在一个<b>最小的</b>这样的整数，设为 \(n\)。<br>
+                        显然 \(n\) 不能是素数（否则它本身就是自己的分解），所以 \(n\) 是合数，可以写成 \(n = ab\)，其中 \(1 < a < n\)，\(1 < b < n\)。<br>
+                        因为 \(n\) 是“最小的不能分解的数”，所以比它小的 \(a\) 和 \(b\) 必定都能分解为素数的乘积。<br>
+                        那么将 \(a\) 和 \(b\) 的素数分解式相乘，就得到了 \(n\) 的素数分解式，这与假设 \(n\) 不能分解矛盾。故存在性得证。
+                        <br><br>
+                        <strong>第二部分：唯一性（利用欧几里得引理）</strong><br>
+                        <i>引理：若素数 \(p \mid ab\)，则 \(p \mid a\) 或 \(p \mid b\)。</i><br>
+                        假设 \(N\) 有两种不同的素因子分解方式：
+                        <div class="math-display">\[
+N = p_1 p_2 \dots p_r = q_1 q_2 \dots q_s
+\]</div>
+                        （这里允许 \(p_i, q_j\) 重复出现）。因为 \(p_1\) 整除左边，所以 \(p_1\) 整除右边。<br>
+                        根据引理，\(p_1\) 必然整除某个 \(q_j\)。因为 \(q_j\) 也是素数，所以必有 \(p_1 = q_j\)。<br>
+                        我们将等式两边的 \(p_1\) 和 \(q_j\) 约去，得到新的等式。重复这个过程，最终两边的素数会被一一对应地全部约去。<br>
+                        这说明两种分解方式中，素因子的种类和个数必须完全一致（仅是排列顺序可能不同），唯一性得证。
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <strong>经典习题（含《初等数论及其应用》补充）：</strong>
+                        <ol>
+                            <li>计算 \(100!\) 末尾有多少个连续的 \(0\)？
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    末尾的 \(0\) 由因子 \(2 \times 5\) 产生。由于 \(100!\) 中 \(2\) 的因子个数远多于 \(5\)，只需计算 \(5\) 的个数。<br>
+                                    包含因子 \(5\) 的个数为：\(\lfloor 100/5 \rfloor + \lfloor 100/25 \rfloor = 20 + 4 = 24\) 个。<br>
+                                    因此末尾有 \(24\) 个连续的 \(0\)。
+                                </div></details>
+                            </li>
+                            <li>【较难证明】证明：若 \(2^n - 1\) 是质数，则 \(n\) 必定也是质数。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    采用反证法。假设 \(n\) 不是质数（即为合数），设 \(n = ab\)，其中 \(1 < a, b < n\)。<br>
+                                    则 \(2^n - 1 = 2^{ab} - 1 = (2^a)^b - 1\)。<br>
+                                    利用代数恒等式 \(x^b - 1 = (x-1)(x^{b-1} + \dots + 1)\)，令 \(x = 2^a\)。<br>
+                                    可得 \(2^{ab} - 1 = (2^a - 1)(2^{a(b-1)} + \dots + 1)\)。<br>
+                                    由于 \(a > 1\)，\(2^a - 1 > 1\)，且第二项显然也大于 \(1\)。这与 \(2^n-1\) 是质数矛盾。<br>
+                                    因此 \(n\) 必须是质数。
+                                </div></details>
+                            </li>
+                            <li>【计算补充】求最小的正整数 \(n\)，使得 \(1260 \times n\) 成为一个完全平方数。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    先对 \(1260\) 进行质因数分解：\(1260 = 2^2 \times 3^2 \times 5^1 \times 7^1\)。<br>
+                                    要使其成为完全平方数，所有质因数的指数必须是偶数。<br>
+                                    目前 \(5\) 和 \(7\) 的指数是奇数 \(1\)，因此 \(n\) 至少需要包含 \(5^1 \times 7^1 = 35\)。<br>
+                                    所以最小的正整数 \(n = 35\)。
+                                </div></details>
+                            </li>
+                            <li>【计算补充】求 \(20!\) 的标准质因数分解中，质因子 \(3\) 的指数是多少？
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    利用勒让德定理（或直接数）：<br>
+                                    在 \(1\) 到 \(20\) 中，\(3\) 的倍数有 \(\lfloor 20/3 \rfloor = 6\) 个；<br>
+                                    \(3^2=9\) 的倍数有 \(\lfloor 20/9 \rfloor = 2\) 个；<br>
+                                    故 \(3\) 的指数为 \(6 + 2 = 8\)。
+                                </div></details>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 定理2：中国剩余定理 -->
+            <div class="acc-item">
+                <div class="acc-header" onclick="toggleAccordion(this)">2. 中国剩余定理 (孙子定理)</div>
+                <div class="acc-content">
+                    <table class="modal-info-table">
+                        <tr><th>人物</th><td>最早见于《孙子算经》，南宋秦九韶给出一般算法</td></tr>
+                        <tr><th>国家</th><td>中国</td></tr>
+                        <tr><th>时间</th><td>约公元 3—5 世纪 / 秦九韶 (1202—1261)</td></tr>
+                        <tr><th>职业</th><td>孙子（生平不详）；秦九韶（南宋官员、数学家）</td></tr>
+                        <tr>
+    <th>人物传记</th>
+    <td style="line-height: 1.8; text-align: justify;">
+        <p style="margin-bottom: 8px;"><strong>无名隐士：孙子</strong>。连真名和生平都没能流传下来，后人只能以“孙子”尊称。但他留下的《孙子算经》，用一道看似简单的“物不知数”问题（三三数之剩二……），给后世数学家留下了一个跨越千年的盲盒。</p>
+        <p style="margin-bottom: 0;"><strong>文武全才：秦九韶</strong>。他绝非手无缚鸡之力的迂腐书生，而是正经的<strong>科举进士</strong>出身。在战火纷飞的年代，他曾亲自组织义军、带兵守城抗蒙，甚至用数学知识优化过前线粮草的运输方案。在守孝期间，他用那个时代特有的“算筹”，硬生生推演出了惊世骇俗的《数书九章》，其中包含了大量田域丈量、军旅布阵、钱谷税收等“经世致用”的硬核问题。他创立的<strong>“大衍求一术”</strong>，比欧洲高斯的同类成果早了五百多年。后世西方学者将其命名为<strong>“中国剩余定理”（Chinese Remainder Theorem，简称 CRT）</strong>，美国科学史家萨顿更是盛赞他为“他所在的民族，他那个时代，最伟大的数学家之一”。</p>
+    </td>
+</tr>
+                    </table>
+                    
+                    <div class="sub-title">引入：“物不知数”问题</div>
+                    <p>中国剩余定理最初来自《孙子算经》中的“物不知数”问题：<br>
+                    “有物不知其数，三三数之剩二，五五数之剩三，七七数之剩二。问物几何？”<br>
+                    翻译成现代数学语言，就是求解一个满足以下条件的整数 \(x\)：</p>
+                    <div class="math-display">
+                        \[
+ \begin{cases} 
+                        x \equiv 2 \pmod 3 \\ 
+                        x \equiv 3 \pmod 5 \\ 
+                        x \equiv 2 \pmod 7 
+                        \end{cases} 
+\]
+                    </div>
+                    <p>《孙子算经》给出的答案是 <b>23</b>。到了南宋，数学家秦九韶在 1247 年所著的《数书九章》中，将这一方法系统化为“大衍求一术”，给出了求解任意模数一次同余方程组的一般算法。</p>
+
+                    <div class="sub-title">数学历史：西方世界的曲折接受</div>
+                    <p>西方世界对这条定理的接受经历了一个从误解到重新发现，再到高度评价的曲折过程。</p>
+                    <ul style="padding-left: 20px; font-size: 0.95rem;">
+                        <li><b>最初的误解与负面评价：</b> 19世纪，英国传教士伟烈亚力在 1852 年首次将《孙子算经》的解法介绍到欧洲。然而，其德文转译本出现了错误，导致德国数学史家莫里茨·康托等人一度对中国算术给出了负面评价。</li>
+                        <li><b>马蒂生的关键性更正与“超越高斯”的论断：</b> 德国数学家路德维希·马蒂生在 1881 年仔细研究了这些译文，敏锐地指出了其中的错误，并成功复原了中国“大衍术”的通用解法。马蒂生指出，在模数两两互质的情况下，中国的解法与高斯在 1801 年《算术研究》中给出的方法“完全一致”；他甚至强调，中国数学家甚至处理了模数<b>并非两两互质</b>的复杂情形，这一点超越了高斯当时的成果。正是马蒂生的这项工作，为“中国剩余定理”这一名称在西方确立奠定了基础。</li>
+                        <li><b>与高斯的“殊途同归”：</b> 高斯的贡献在于为同余理论建立了严格的现代数学基础，而秦九韶的“大衍求一术”则是一种独立的、用于解决具体历法计算问题的算法体系。两者在核心结论上一致，但中国的成果要早于高斯约 550 年。</li>
+                    </ul>
+
+                    <div class="sub-title">定理内容 (CRT)</div>
+                    <div class="content-box" style="border-left-color: #3498db;">
+                        <p>设 \(m_1, m_2, \dots, m_k\) 是两两互素的正整数，令</p>
+                        <div class="math-display">\[
+ M = m_1 m_2 \dots m_k 
+\]</div>
+                        <p>则对任意整数 \(a_1, a_2, \dots, a_k\)，同余方程组：</p>
+                        <div class="math-display">
+                            \[
+ \begin{cases} 
+                            x \equiv a_1 \pmod{m_1} \\ 
+                            x \equiv a_2 \pmod{m_2} \\ 
+                            \dots \\ 
+                            x \equiv a_k \pmod{m_k} 
+                            \end{cases} 
+\]
+                        </div>
+                        <p>必有解，并且所有解在模 \(M\) 意义下唯一。</p>
+                    </div>
+
+                    <div class="sub-title">解法：大衍求一术与构造法证明</div>
+                    <p>在证明这个定理之前，我们先介绍秦九韶的“大衍求一术”的解法过程，它可以由一个口诀来表示，即明朝数学家程大位的《孙子歌诀》：</p>
+                    <div style="text-align: center; font-weight: bold; color: #e74c3c; margin: 10px 0;">
+                        “三人同行七十稀，五树梅花廿一支，七子团圆正半月，除百零五便得知。”
+                    </div>
+                    <p>其思想是：寻找三个“算子”。</p>
+                    <ul style="padding-left: 20px;">
+                        <li><b>算子①：</b> 被 3 和 5 整除，但被 7 除余 1；</li>
+                        <li><b>算子②：</b> 被 5 和 7 整除，但被 3 除余 1；</li>
+                        <li><b>算子③：</b> 被 3 和 7 整除，但被 5 除余 1；</li>
+                    </ul>
+                    <p>这里的算子是满足这个条件的最小整数，然后将算子分别乘以对应的余数，即为其一个解。通过加减 3, 5, 7 的最小公倍数的整数倍可以得到一系列的解。</p>
+                    <p>对于“物不知数”问题，我们先得到 3 个算子，分别是：<br>
+                    <b>算子①：</b> 15 (15 模 7 余 1)<br>
+                    <b>算子②：</b> 70 (70 模 3 余 1)<br>
+                    <b>算子③：</b> 21 (21 模 5 余 1)</p>
+                    <p>因此特解为：\(70 \times 2 + 21 \times 3 + 15 \times 2 = 233\)。<br>
+                    所以最小正整数解为：\(233 - 105 \times 2 = 23\)。</p>
+
+                    <p><b>下面是现代数学语言的构造解法，及其与大衍求一术的对应：</b></p>
+                    <table class="modal-info-table">
+                        <tr><th style="width: 45%;">数学语言</th><th>对应《孙子算经》问题的“大衍求一术”解法</th></tr>
+                        <tr>
+                            <td>
+                                \[
+ M_i = \frac{M}{m_i} 
+\]
+                            </td>
+                            <td>为求算子作准备</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                由于 \(m_i\) 两两互素，所以 \(\gcd(M_i, m_i) = 1\)。所以存在 \(t_i\) 使得：<br>
+                                \[
+ M_i t_i \equiv 1 \pmod{m_i} 
+\]
+                            </td>
+                            <td>这里的 \(M_i t_i\) 就是“算子”了。</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                于是：
+                                \[
+ x \equiv \sum_{i=1}^{k} a_i M_i t_i \pmod M 
+\]
+                            </td>
+                            <td>这里相当于把余数乘以各自的算子并求和，然后再模最小公倍数，得到通解。</td>
+                        </tr>
+                    </table>
+                    
+                    <div class="exercise-box">
+                        <strong>课堂练习（按难度先易后难排序）：</strong>
+                        <ol>
+                            <li>计算题：求解同余方程组 \(\begin{cases} x \equiv 2 \pmod 3 \\ x \equiv 3 \pmod 4 \\ x \equiv 4 \pmod 5 \end{cases}\)
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    观察发现 \(x+1\) 能够同时被 \(3, 4, 5\) 整除。<br>
+                                    因此 \(x+1\) 是 \(3, 4, 5\) 的公倍数。<br>
+                                    因为 \(\text{lcm}(3,4,5) = 60\)，所以 \(x+1 = 60k\)，即 \(x = 60k - 1\)。<br>
+                                    取最小的正整数解（\(k=1\)），得 \(x = 59\)。通解为 \(x \equiv 59 \pmod{60}\)。
+                                </div></details>
+                            </li>
+                            <li>计算题：一个数模 11 余 1，模 12 余 2，模 13 余 3，问此数是多少？（《初等数论及其应用》习题）
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    设该数为 \(x\)。\(m_1=11, m_2=12, m_3=13\)，两两互素。\(M = 11 \times 12 \times 13 = 1716\)。<br>
+                                    \(M_1 = 156, M_2 = 143, M_3 = 132\)。<br>
+                                    求 \(t_i\)：<br>
+                                    \(156t_1 \equiv 1 \pmod{11} \Rightarrow 2t_1 \equiv 1 \pmod{11} \Rightarrow t_1 = 6\)<br>
+                                    \(143t_2 \equiv 1 \pmod{12} \Rightarrow 11t_2 \equiv 1 \pmod{12} \Rightarrow t_2 = 11\)<br>
+                                    \(132t_3 \equiv 1 \pmod{13} \Rightarrow 2t_3 \equiv 1 \pmod{13} \Rightarrow t_3 = 7\)<br>
+                                    \(x \equiv 1 \times 156 \times 6 + 2 \times 143 \times 11 + 3 \times 132 \times 7 = 936 + 3146 + 2772 = 6854\)。<br>
+                                    \(6854 \pmod{1716} = 1706\)。最小正整数解为 1706。
+                                </div></details>
+                            </li>
+                            <li>计算题：求解同余方程组 $\begin{cases} x \equiv 1 \pmod 3 \\ x \equiv 2 \pmod 5 \\ x \equiv 3 \pmod 7 \end{cases}$
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    这里 \(m_1=3, m_2=5, m_3=7\) 两两互质，\(M = 3 \times 5 \times 7 = 105\)。<br>
+                                    利用逐步代入法或公式法可得，\(x \equiv 52 \pmod{105}\)。即最小正整数解为 \(52\)。
+                                </div></details>
+                            </li>
+                            <li>【较难】古印度经典问题（保留原先题目）：一个老奶奶去集市卖鸡蛋，不小心被人撞翻了篮子。路人问有多少个鸡蛋？老奶奶说：2 个 2 个地数余 1 个；3 个 3 个地数余 2 个；4 个 4 个地数余 3 个；5 个 5 个地数余 4 个；6 个 6 个地数余 5 个；只有 7 个 7 个地数刚好数完。求篮子里最少有多少个鸡蛋？
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    根据题意，鸡蛋数 \(x\) 满足 \(x \equiv -1 \pmod 2, x \equiv -1 \pmod 3, \dots, x \equiv -1 \pmod 6\)，且 \(x \equiv 0 \pmod 7\)。<br>
+                                    由于 \(2,3,4,5,6\) 的最小公倍数是 \(60\)，所以 \(x+1 = 60k\)，即 \(x = 60k - 1\)。<br>
+                                    我们需要 \(60k - 1\) 能被 \(7\) 整除。即 \(60k \equiv 1 \pmod 7\)。<br>
+                                    因为 \(60 \equiv 4 \pmod 7\)，所以 \(4k \equiv 1 \pmod 7\)，解得 \(k \equiv 2 \pmod 7\)。<br>
+                                    取最小正整数 \(k=2\)，则 \(x = 60 \times 2 - 1 = 119\)。所以最少有 \(119\) 个鸡蛋。
+                                </div></details>
+                            </li>
+                            <li>【补充题】一个数模 14 余 1，模 13 余 2，模 12 余 1，问此数是多少？
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    设该数为 \(x\)。\(m_1=14, m_2=13, m_3=12\)，两两互素。\(M = 2184\)。<br>
+                                    \(x \equiv 1 \pmod{14}\) 且 \(x \equiv 1 \pmod{12}\)，可知 \(x-1\) 是 12 和 14 的公倍数。<br>
+                                    \(\text{lcm}(12, 14) = 84\)，所以 \(x = 84k + 1\)。<br>
+                                    代入第二个条件：\(84k + 1 \equiv 2 \pmod{13} \Rightarrow 6k \equiv 1 \pmod{13} \Rightarrow 6k \equiv 14 \Rightarrow k \equiv 11 \pmod{13}\)。<br>
+                                    取 \(k=11\)，则 \(x = 84 \times 11 + 1 = 925\)。<br>
+                                    所以最小正整数解为 925。
+                                </div></details>
+                            </li>
+                            <li>【简单证明】证明：若一个素数 \(p\) 能表示为两个正整数 \(a\) 和 \(b\) 之和，即 \(p = a + b\)，则 \(a\) 和 \(b\) 互素。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    采用反证法。假设 \(a\) 和 \(b\) 不互素，即它们存在大于 \(1\) 的公约数 \(d = \gcd(a,b) > 1\)。<br>
+                                    那么可以设 \(a = d \cdot x, b = d \cdot y\)。<br>
+                                    则 \(p = a + b = d(x+y)\)。<br>
+                                    因为 \(d > 1\) 且 \(x+y \ge 2\)，这说明 \(p\) 是一个合数，这与 \(p\) 是素数矛盾。<br>
+                                    因此假设不成立，\(a\) 和 \(b\) 必定互素。
+                                </div></details>
+                            </li>
+                            <li>【补充题】求解同余方程：\(65x \equiv 43 \pmod{21}\)
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    先化简模数：\(65 \equiv 2 \pmod{21}\)，\(43 \equiv 1 \pmod{21}\)。<br>
+                                    原方程化为 \(2x \equiv 1 \pmod{21}\)。<br>
+                                    由于 \(\gcd(2,21)=1\)，两边同乘 11：\(22x \equiv 11 \pmod{21}\)，即 \(x \equiv 11 \pmod{21}\)。
+                                </div></details>
+                            </li>
+                            <li>【较难】将 \(\frac{67}{12}\) 写成连分数形式，并通过渐近分数表求其渐近分数。（此题考察连分数，是解同余和丢番图方程的强力工具）
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    利用辗转相除法：<br>
+                                    \(67 = 5 \times 12 + 7\)<br>
+                                    \(12 = 1 \times 7 + 5\)<br>
+                                    \(7 = 1 \times 5 + 2\)<br>
+                                    \(5 = 2 \times 2 + 1\)<br>
+                                    \(2 = 2 \times 1 + 0\)<br>
+                                    连分数形式为 \([5; 1, 1, 2, 2]\)。<br>
+                                    渐近分数计算表（\(p_i / q_i\)）：<br>
+                                    \(i=0: 5/1\)<br>
+                                    \(i=1: 6/1\)<br>
+                                    \(i=2: 11/2\)<br>
+                                    \(i=3: 28/5\)<br>
+                                    \(i=4: 67/12\)
+                                </div></details>
+                            </li>
+                            <li>【较难】求解不定方程：\(3251x + 723y = 1\)。（结合裴蜀定理与辗转相除）
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    利用辗转相除法：<br>
+                                    \(3251 = 4 \times 723 + 359\)<br>
+                                    \(723 = 2 \times 359 + 5\)<br>
+                                    \(359 = 71 \times 5 + 4\)<br>
+                                    \(5 = 1 \times 4 + 1\)<br>
+                                    回代：<br>
+                                    \(1 = 5 - 4 = 5 - (359 - 71 \times 5) = 72 \times 5 - 359\)<br>
+                                    \(= 72 \times (723 - 2 \times 359) - 359 = 72 \times 723 - 145 \times 359\)<br>
+                                    \(= 72 \times 723 - 145 \times (3251 - 4 \times 723) = (72 + 580) \times 723 - 145 \times 3251\)<br>
+                                    \(= 652 \times 723 - 145 \times 3251 = 1\)。<br>
+                                    所以一组解为 \(x = -145, y = 652\)。
+                                </div></details>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 定理3：费马小定理 -->
+            <div class="acc-item">
+                <div class="acc-header" onclick="toggleAccordion(this)">3. 费马小定理 (Fermat's Little Theorem)</div>
+                <div class="acc-content">
+                    <table class="modal-info-table">
+                        <tr><th>人物</th><td>皮埃尔·德·费马 (Pierre de Fermat)</td></tr>
+                        <tr><th>国家</th><td>法国</td></tr>
+                        <tr><th>时间</th><td>1601—1665</td></tr>
+                        <tr><th>职业</th><td><b>律师</b>（业余数学家之王）</td></tr>
+<tr>
+    <th>人物传记</th>
+    <td style="line-height: 1.8; text-align: justify;">
+        <p style="margin-bottom: 0;"><strong>业余之王：皮埃尔·德·费马</strong>。他的本职是法国图卢兹地方议会的法官，但在数学界，他被公认为“业余数学家之王”。他性格极其低调（甚至可以说是“懒惰”），生前几乎不发表任何数学著作，所有伟大的发现都写在给朋友的信里，或是随手写在书页的空白处。最著名的梗便是他在阅读丢番图《算术》时，在页边写下费马大定理的猜想，并附上一句：“<strong>我发现了一个绝妙的证明，但这空白太小，写不下。</strong>”除了折磨了人类三百多年的费马大定理和密码学基石费马小定理，他还与帕斯卡在一场关于“赌博分钱”的通信中，共同创立了概率论，堪称跨界狂魔。</p>
+    </td>
+</tr>
+                    </table>
+                    
+                    <div class="sub-title">定理内容</div>
+                    <p>设 \(p\) 为素数，\(a \in \mathbb{Z}\)，则：</p>
+                    <div class="math-display">\[
+a^p \equiv a \pmod p
+\]</div>
+                    <p>特别地，若 \(p \nmid a\)，即 \(\gcd(a, p) = 1\)，则：</p>
+                    <div class="math-display">\[
+a^{p-1} \equiv 1 \pmod p
+\]</div>
+                    
+                    <div class="sub-title">证明一：利用剩余系（缩系）</div>
+                    <div class="proof-step">
+                        费马小定理的证明有多种方法，在《有趣的数论》一书中提供了一种二项式的证明方法，极为精妙。但是这里我们根据上面的认识来证明，至少我觉得它更加神奇，对于理解数的奥秘更有帮助。<br><br>
+                        我们先构造以下数表：
+                        <div class="math-display">\[
+a, 2a, \dots, (p-1)a
+\]</div>
+                        显然，由于 \(p \nmid a\)，任意两个数模 \(p\) 都不余同（如果你一眼看不出，试着组织一下数学证明，提示：反证法）。所以这组数模 \(p\) 正好构建了一个 \(\{1, 2, \dots, p-1\}\) 的<b>最小正简化剩余系</b>。<br>
+                        所以把这组数连乘可知它模 \(p\) 同余于 \((p-1)!\)，即：
+                        <div class="math-display">\[
+a^{p-1}(p-1)! \equiv (p-1)! \pmod p
+\]</div>
+                        又由于 \(p \nmid (p-1)!\)（因为 \(p\) 是素数），所以可得：
+                        <div class="math-display">\[
+a^{p-1} \equiv 1 \pmod p
+\]</div>
+                        这就证明了费马小定理。（注意，这里实际上我们是证明了费马小定理的特殊情况，即 \(p \nmid a\) 的情况，后面的二项式证明方法中是先得到一般结论，然后再特殊化。）
+                    </div>
+                    
+                    <div class="sub-title">证明二：利用二项式定理与构造递推</div>
+                    <div class="proof-step">
+                        最后，我们提供一下用二项式来证明费马小定理的方法：<br>
+                        我们知道 \(\binom{n}{m}\) 或 \(C_n^m\)，代表从 \(n\) 个不同的球中取 \(m\) 个球的取法的计数，并且我们熟知：
+                        <div class="math-display">\[
+\binom{n}{m} = \frac{n \cdot (n-1) \cdots (n-m+1)}{1 \cdot 2 \cdots m}
+\]</div>
+                        例如，\(\binom{5}{2} = \frac{5 \times 4}{1 \times 2} = 10\)。<br>
+                        我们考察二项式：
+                        <div class="math-display">\[
+(x+y)^p = x^p + \binom{p}{1}x^{p-1}y + \dots + \binom{p}{p-1}xy^{p-1} + y^p
+\]</div>
+                        其中 \(x, y\) 为整数，\(p\) 为素数。对于任意中间项，都有 \(p \mid \binom{p}{i}\)，其中 \(1 \le i \le p-1\)。如下图杨辉三角，注意，\(p \mid \binom{p}{i}\) 仅当 \(p\) 为素数时成立，例如 \(p=4, 6, 8\) 等时，则不成立，<b>这一点要牢记</b>。
+                    </div>
+                    
+                    <div class="pascal-triangle-container">
+                        <div>
+                            <div class="pascal-row"><div class="pascal-cell edge" data-tip="行: 0 | 值: 1">1</div></div>
+                            <div class="pascal-row"><div class="pascal-cell edge" data-tip="行: 1 | 值: 1">1</div><div class="pascal-cell edge" data-tip="行: 1 | 值: 1">1</div></div>
+                            <div class="pascal-row prime-row"><div class="pascal-cell edge" data-tip="行: 2 | 值: 1">1</div><div class="pascal-cell" data-tip="行: 2 | 值: 2 (能被2整除)">2</div><div class="pascal-cell edge" data-tip="行: 2 | 值: 1">1</div></div>
+                            <div class="pascal-row prime-row"><div class="pascal-cell edge" data-tip="行: 3 | 值: 1">1</div><div class="pascal-cell" data-tip="行: 3 | 值: 3 (能被3整除)">3</div><div class="pascal-cell" data-tip="行: 3 | 值: 3 (能被3整除)">3</div><div class="pascal-cell edge" data-tip="行: 3 | 值: 1">1</div></div>
+                            <div class="pascal-row"><div class="pascal-cell edge" data-tip="行: 4 | 值: 1">1</div><div class="pascal-cell" data-tip="行: 4 | 值: 4">4</div><div class="pascal-cell" data-tip="行: 4 | 值: 6">6</div><div class="pascal-cell" data-tip="行: 4 | 值: 4">4</div><div class="pascal-cell edge" data-tip="行: 4 | 值: 1">1</div></div>
+                            <div class="pascal-row prime-row"><div class="pascal-cell edge" data-tip="行: 5 | 值: 1">1</div><div class="pascal-cell" data-tip="行: 5 | 值: 5 (能被5整除)">5</div><div class="pascal-cell" data-tip="行: 5 | 值: 10 (能被5整除)">10</div><div class="pascal-cell" data-tip="行: 5 | 值: 10 (能被5整除)">10</div><div class="pascal-cell" data-tip="行: 5 | 值: 5 (能被5整除)">5</div><div class="pascal-cell edge" data-tip="行: 5 | 值: 1">1</div></div>
+                            <div class="pascal-row"><div class="pascal-cell edge" data-tip="行: 6 | 值: 1">1</div><div class="pascal-cell" data-tip="行: 6 | 值: 6">6</div><div class="pascal-cell" data-tip="行: 6 | 值: 15">15</div><div class="pascal-cell" data-tip="行: 6 | 值: 20">20</div><div class="pascal-cell" data-tip="行: 6 | 值: 15">15</div><div class="pascal-cell" data-tip="行: 6 | 值: 6">6</div><div class="pascal-cell edge" data-tip="行: 6 | 值: 1">1</div></div>
+                            <div class="pascal-row prime-row"><div class="pascal-cell edge" data-tip="行: 7 | 值: 1">1</div><div class="pascal-cell" data-tip="行: 7 | 值: 7 (能被7整除)">7</div><div class="pascal-cell" data-tip="行: 7 | 值: 21 (能被7整除)">21</div><div class="pascal-cell" data-tip="行: 7 | 值: 35 (能被7整除)">35</div><div class="pascal-cell" data-tip="行: 7 | 值: 35 (能被7整除)">35</div><div class="pascal-cell" data-tip="行: 7 | 值: 21 (能被7整除)">21</div><div class="pascal-cell" data-tip="行: 7 | 值: 7 (能被7整除)">7</div><div class="pascal-cell edge" data-tip="行: 7 | 值: 1">1</div></div>
+                        </div>
+                    </div>
+                    <p style="text-align: center; color: #7f8c8d; font-size: 0.9rem; margin-bottom: 15px;">杨辉三角 (Pascal's Triangle) - 悬停查看数字信息</p>
+                    
+                    <div class="proof-step">
+                        所以把以上二项式模 \(p\) 后可得：\((x+y)^p\) 模 \(p\) 同余于 \(x^p + y^p\)，或记为：
+                        <div class="math-display">\[
+(x+y)^p \equiv x^p + y^p \pmod p
+\]</div>
+                        这个同余式极为重要。根据 \((x+y)^p \equiv x^p + y^p \pmod p\)，我们可以从 \(x=y=1\) 开始，这样便有：
+                        <div class="math-display">
+                            \[
+                            (1+1)^p \equiv 1^p + 1^p \equiv 2 \pmod p \\
+                            (1+2)^p \equiv 1^p + 2^p \equiv 1 + 2 \equiv 3 \pmod p \\
+                            \dots
+                            \]
+                        </div>
+                        依次类推，可得，对于任意整数 \(a\)，有：
+                        <div class="math-display">
+                            \[
+                            a^p \equiv (1 + a - 1)^p \equiv 1^p + (a - 1)^p \equiv 1 + a - 1 \equiv a \pmod p
+                            \]
+                        </div>
+                        即：
+                        <div class="math-display">\[
+a^p \equiv a \pmod p
+\]</div>
+                        <span style="color:#2980b9;">(这个部分你也可用数学归纳法的方式来写，则更加规范)</span><br>
+                        这便是费马小定理的一般形式，并且过程中对 \(a\) 没有任何限制，我们做一下验证，比如 \(p=3\)，而 \(a=6\)，会有什么结果呢？我们看一下 \(6^3\) 模 \(3\) 同余于 \(6\) 吗？显然，是的。<br><br>
+                        进一步地，假设 \((a, p) = 1\)，由前面的一般形式可得：\(p \mid a^p - a = a(a^{p-1} - 1)\)，由于 \((a, p) = 1\)（或者记为 \(p \nmid a\)），那么必有：\(p \mid a^{p-1} - 1\)，这便是费马小定理的特殊形式了。<br><br>
+                        以上可见，费马小定理的证明过程中，我们使用了两种方法都用到了构造，一个是构造了数表 \(a, 2a, \dots, (p-1)a\)，并让它们相乘，另一个是构造了二项式，先得到 \((x+y)^p \equiv x^p + y^p \pmod p\)，再利用递推的方法来证明费马小定理的一般式，最后特殊化为 \((a, p) = 1\) 的情况。下面的两个例题，我们同样也用到了构造法来解决数论问题。
+                    </div>
+
+                    <div class="exercise-box">
+                        <strong>经典习题（含《初等数论及其应用》补充）：</strong>
+                        <ol>
+                            <li>计算题：求 \(2^{100} \pmod{11}\) 的余数。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    \(11\) 是素数，且 \(\gcd(2, 11)=1\)。根据费马小定理 \(2^{10} \equiv 1 \pmod{11}\)。<br>
+                                    将指数拆分：\(100 = 10 \times 10\)。<br>
+                                    所以 \(2^{100} = (2^{10})^{10} \equiv 1^{10} \equiv 1 \pmod{11}\)。
+                                </div></details>
+                            </li>
+                            <li>【较难证明】证明：对于任意整数 \(a\)，\(a^7 - a\) 必能被 \(42\) 整除。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    因为 \(42 = 2 \times 3 \times 7\)，且 \(2, 3, 7\) 两两互素，我们只需分别证明它能被 \(2, 3, 7\) 整除。
+                                    <br><b>1. 模 \(2\)：</b> \(a^7 \equiv a \pmod 2\) （偶数/奇数的 \(7\) 次方奇偶性不变）。
+                                    <br><b>2. 模 \(3\)：</b> 根据费马小定理 \(a^3 \equiv a \pmod 3\)。\(a^7 = a^3 \cdot a^3 \cdot a \equiv a \cdot a \cdot a = a^3 \equiv a \pmod 3\)。
+                                    <br><b>3. 模 \(7\)：</b> 根据费马小定理，直接有 \(a^7 \equiv a \pmod 7\)。
+                                    <br>综上，\(a^7 - a\) 同时被 \(2, 3, 7\) 整除，因此被它们的最小公倍数 \(42\) 整除。
+                                </div></details>
+                            </li>
+                            <li>【计算补充】利用费马小定理计算 \(3^{100} \pmod{17}\)。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    \(17\) 是素数，根据费马小定理，\(3^{16} \equiv 1 \pmod{17}\)。<br>
+                                    将指数 \(100\) 对 \(16\) 取余：\(100 = 6 \times 16 + 4\)。<br>
+                                    因此 \(3^{100} \equiv 3^4 \pmod{17}\)。计算 \(3^4 = 81 = 4 \times 17 + 13\)。<br>
+                                    所以 \(3^{100} \equiv 13 \pmod{17}\)。
+                                </div></details>
+                            </li>
+                            <li>【简单证明补充】证明：对于任意整数 \(a\) 和素数 \(p\)，\(a^p \equiv a \pmod p\)。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    <b>分类讨论法：</b><br>
+                                    若 \(p \mid a\)，则 \(a \equiv 0 \pmod p\)，显然 \(a^p \equiv 0^p \equiv 0 \equiv a \pmod p\)。<br>
+                                    若 \(p \nmid a\)，即 \(\gcd(a,p)=1\)，根据费马小定理，\(a^{p-1} \equiv 1 \pmod p\)。<br>
+                                    两边同乘 \(a\)，即可得 \(a^p \equiv a \pmod p\)。
+                                </div></details>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 定理4：威尔逊定理 -->
+            <div class="acc-item">
+                <div class="acc-header" onclick="toggleAccordion(this)">4. 威尔逊定理 (Wilson's Theorem)</div>
+                <div class="acc-content">
+                    <table class="modal-info-table">
+                        <tr><th>人物</th><td>华林 (提出)，拉格朗日 (证明)</td></tr>
+                        <tr><th>国家</th><td>英国 / 法国</td></tr>
+                        <tr><th>时间</th><td>1770 年</td></tr>
+                        <tr><th>职业</th><td>华林（数学家）；拉格朗日（数学家、物理学家、天文学家）</td></tr>
+<tr>
+    <th>人物传记</th>
+    <td style="line-height: 1.8; text-align: justify;">
+        <p style="margin-bottom: 8px;"><strong>业余观察者：约翰·威尔逊</strong>。本职是英国法官。没受过系统数学训练的他，敏锐地察觉到了一个惊人的规律：\((p-1)! \equiv -1 \pmod p\)。有趣的是，他完全无法证明，纯属天才的灵光一闪。</p>
+        <p style="margin-bottom: 8px;"><strong>逆袭伯乐：爱德华·华林</strong>。作为<strong>威尔逊的挚友</strong>，他将这个猜想写进书里，向数学界抛出“挑战书”。<strong>说起华林，可了不得</strong>，华林出身寒门，考入剑桥大学后，为了负担学费，只能做<strong>“减费生”</strong>（在学院里干杂役、伺候富裕同学），但他凭借惊人的数学天赋，硬是逆天改命，不仅以第一名的成绩毕业，更在24岁时接过了牛顿曾坐过的教席，成为了<strong>剑桥大学卢卡斯数学教授</strong>！他不仅在数论上留下了著名的<strong>“华林问题”</strong>（断言任意正整数都能表示为有限个 \(k\) 次方数之和），开启了堆垒数论的大门，更在代数与对称函数理论中做出了奠基性工作。</p>
+        <p style="margin-bottom: 0;"><strong>终结者：约瑟夫·路易斯·拉格朗日</strong>。1771年，这位法国大数学家接下了战书，给出了第一个严密证明。他不仅是分析力学的奠基人，连拿破仑都是他的超级粉丝。这段由“法官、寒门教授、天才”接力的故事，最终成就了数论史上的佳话。</p>
+    </td>
+</tr>
+                    </table>
+                    
+                    <div class="sub-title">定理内容</div>
+                    <div class="content-box" style="border-left-color: #3498db;">
+                        <p>设 \(p\) 为大于 \(1\) 的整数，则 \(p\) 为素数的充要条件是：</p>
+                        <div class="math-display">\[
+(p-1)! \equiv -1 \pmod p
+\]</div>
+                        <p>等价形式：若 \(p\) 为素数，则 \((p-1)! + 1\) 能被 \(p\) 整除。</p>
+                    </div>
+                    
+                    <div class="sub-title">定理证明</div>
+                    <p>上次关于费马小定理的介绍中，我们得出了一个规律，即对于任意一个奇素数 \(p\)，在其<b>最小正简化剩余系</b> \(1, 2, \dots, p-1\) 中，\(1\) 和 \(p-1\) 都与自身互为逆元，而其它 \(p-3\) 个数则成对互为逆元（其中，\(2\) 与中间数 \(\frac{p+1}{2}\) 互为逆元）。</p>
+                    <div class="proof-step">
+                        首先，当 \(p=2\) 时，命题成立。<br><br>
+                        假设 \(2, 3, \dots, p-2\) 用 \(a_1, a_2, \dots, a_{p-3}\) 表示，由于这 \(p-3\) 个数成对互为逆元，即对于集合 \(\{a_1, a_2, \dots, a_{p-3}\}\) 中每一个 \(a_i\)，都存在唯一的 \(a_j\)（\(i \neq j\)），使得 \(a_i \cdot a_j \equiv 1 \pmod p\)。<br><br>
+                        此时，我们考察 \((p-1)!\)，发现：
+                        <div class="math-display">\[
+(p-1)! = 1 \cdot a_1 \cdot a_2 \cdots a_{p-3} \cdot (p-1)
+\]</div>
+                        将其模 \(p\)，由于 \(a_1 \cdot a_2 \cdots a_{p-3}\) 可以两两配对，每一对的乘积都同余于 \(1\)，所以这一长串的乘积模 \(p\) 等于 \(1\)。<br>
+                        于是：\(1 \cdot 1 \cdot (p-1) = p-1\)，而 \(p-1 \equiv -1 \pmod p\)。<br>
+                        因此，\((p-1)! \equiv -1 \pmod p\)，得证。
+                    </div>
+
+                    <div class="exercise-box">
+                        <strong>经典习题（含《初等数论及其应用》补充）：</strong>
+                        <ol>
+                            <li>计算题：求 \(100! \pmod{101}\) 的余数。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    因为 \(101\) 是素数，根据威尔逊定理有 \((101-1)! \equiv -1 \pmod{101}\)。<br>
+                                    即 \(100! \equiv 100 \equiv -1 \pmod{101}\)。余数为 \(100\)。
+                                </div></details>
+                            </li>
+                            <li>【较难证明】威尔逊定理的逆定理：证明如果 \((p-1)! \equiv -1 \pmod p\)，则 \(p\) 一定是素数。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    采用反证法。假设 \(p\) 为合数（且 \(p > 4\)），则 \(p\) 必定有一个真因数 \(d\) 满足 \(1 < d < p\)。<br>
+                                    显然，在 \((p-1)! = 1 \times 2 \times \dots \times d \times \dots \times (p-1)\) 中，包含了因子 \(d\)。<br>
+                                    因此 \(d \mid (p-1)!\)。<br>
+                                    又已知 \((p-1)! \equiv -1 \pmod p\)，即 \(p \mid (p-1)! + 1\)。<br>
+                                    由于 \(d \mid p\)，所以必定有 \(d \mid (p-1)! + 1\)。<br>
+                                    既然 \(d \mid (p-1)!\) 且 \(d \mid (p-1)! + 1\)，两式相减可得 \(d \mid 1\)。<br>
+                                    这与 \(d > 1\) 矛盾！所以假设不成立，\(p\) 必定是素数。
+                                </div></details>
+                            </li>
+                            <li>【计算补充】利用威尔逊定理计算 \(16! \pmod{17}\)。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    \(17\) 是素数，根据威尔逊定理：\((17-1)! \equiv -1 \pmod{17}\)。<br>
+                                    即 \(16! \equiv -1 \equiv 16 \pmod{17}\)。
+                                </div></details>
+                            </li>
+                            <li>【简单证明补充】求 \((p-2)! \pmod p\) 的值（其中 \(p\) 为素数）。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    根据威尔逊定理：\((p-1)! \equiv -1 \pmod p\)。<br>
+                                    我们知道 \((p-1)! = (p-1) \times (p-2)!\)。<br>
+                                    所以 \((p-1) \times (p-2)! \equiv -1 \pmod p\)。<br>
+                                    因为 \(p-1 \equiv -1 \pmod p\)，代入得：\(-1 \times (p-2)! \equiv -1 \pmod p\)。<br>
+                                    两边同乘 \(-1\)，得到 \((p-2)! \equiv 1 \pmod p\)。
+                                </div></details>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 定理5：欧拉定理 -->
+            <div class="acc-item">
+                <div class="acc-header" onclick="toggleAccordion(this)">5. 欧拉定理 (Euler's Theorem)</div>
+                <div class="acc-content">
+                    <table class="modal-info-table">
+                        <tr><th>人物</th><td>莱昂哈德·欧拉 (Leonhard Euler)</td></tr>
+                        <tr><th>国家</th><td>瑞士</td></tr>
+                        <tr><th>时间</th><td>1707—1783</td></tr>
+                        <tr><th>职业</th><td>数学家、物理学家、天文学家</td></tr>
+<tr>
+    <th>人物传记</th>
+    <td style="line-height: 1.8; text-align: justify;">
+        <p style="margin-bottom: 8px;"><strong>所有人的老师：莱昂哈德·欧拉</strong>。他是人类历史上最高产的数学家，一生写下了886本书和论文，全集多达80多卷。如果把他所有的著作排成一排，足以绕地球好几圈。你现在在数学课上用的符号，一大半都是他发明的：自然底数 \(e\)、虚数单位 \(i\)、圆周率 \(\pi\)、函数记号 \(f(x)\)、求和符号 \(\Sigma\) 等等。</p>
+        <p style="margin-bottom: 8px;">他写下的<strong>欧拉公式 \(e^{i\pi} + 1 = 0\)</strong> 更是被誉为“上帝公式”，将数学中最美的五个常数完美融合。然而，命运对这位天才极其残酷。他28岁右眼失明，59岁左眼也彻底瞎了。但这并没有让他停下脚步，晚年的他全凭惊人的记忆力和恐怖的心算能力，口述了几百篇论文。法国数学家阿拉戈感叹道：“<strong>欧拉计算起来毫不费力，就像人在呼吸，或者老鹰在飞翔一样自然。</strong>”</p>
+        <p style="margin-bottom: 0;">他在数论中提出了著名的<strong>欧拉函数 \(\varphi(n)\)</strong>，并用他标志性的“欧拉定理”统一了同余世界的法则。他的一生都在用公式给宇宙写情书，真正做到了“数学无死角”。</p>
+    </td>
+</tr>
+                    </table>
+                    
+                    <div class="sub-title">数学历史</div>
+                    <div class="content-box" style="border-left-color: #e67e22;">
+                        <p>1640年，费马在给好友德贝西（Frénicle de Bessy）的一封信中提出了费马小定理的猜想，费马以其一贯的风格，宣称自己证明了此定理，但并未给出证明过程（“我缺乏足够的篇幅来证明它”）。</p>
+                        <p>1736年，18世纪的数学巨匠莱昂哈德·欧拉（Leonhard Euler）证明了费马小定理。但他并未止步于此，欧拉敏锐地意识到，费马的结论依赖于“模 \(p\) 为素数”这一极强的条件。如果将模数换成合数，会发生什么？</p>
+                        <p>经过二十多年的思考，欧拉在1763年发表了论文，引入了欧拉函数 \(\varphi(n)\)，并成功将费马小定理推广到了任意正整数模。为了纪念他的贡献，后世将这一推广形式命名为“欧拉定理”。</p>
+                        <p>在欧拉的时代，数学界还没有“群”的概念。直到1801年，高斯在《算术研究》（Disquisitiones Arithmeticae）中系统研究了模 \(n\) 的剩余类，隐式地使用了群论的思想。后世的数学家（如柯西、伽罗瓦）在此基础上建立了抽象代数，人们才恍然大悟：欧拉定理不过是拉格朗日定理（群中元素的阶整除群的阶）在有限交换群 \((\mathbb{Z}/n\mathbb{Z})^\times\) 上的一个直接推论。</p>
+                    </div>
+                    
+                    <div class="sub-title">定理内容</div>
+                    <div class="content-box" style="border-left-color: #3498db;">
+                        <p>设 \(n\) 为正整数，\(a\) 为整数。若 \(a\) 与 \(n\) 互素（即 \(\gcd(a, n) = 1\)），则：</p>
+                        <div class="math-display">\[
+a^{\varphi(n)} \equiv 1 \pmod n
+\]</div>
+                        <p>其中，\(\varphi(n)\) 为欧拉函数（Euler's totient function），定义为小于等于 \(n\) 且与 \(n\) 互素的正整数的个数。</p>
+                    </div>
+                    
+                    <div class="sub-title">定理证明（基于简化剩余系的置换法）</div>
+                    <div class="proof-step">
+                        考虑模 \(n\) 的简化剩余系 \(U(n) = \{r_1, r_2, \dots, r_{\varphi(n)}\}\)，其中每个 \(r_i\) 均与 \(n\) 互素。<br>
+                        由于 \(\gcd(a, n) = 1\)，<span class="theorem-red">映射 \(f: x \mapsto ax \pmod n\) 是 \(U(n)\) 到自身的一个双射（置换）。</span><br>
+                        因此，集合 \(\{ar_1, ar_2, \dots, ar_{\varphi(n)}\}\) 与 \(\{r_1, r_2, \dots, r_{\varphi(n)}\}\) 在模 \(n\) 意义下是同一个集合。<br>
+                        将两个集合的元素分别相乘：
+                        <div class="math-display">\[
+\prod_{i=1}^{\varphi(n)} (ar_i) \equiv \prod_{i=1}^{\varphi(n)} r_i \pmod n
+\]</div>
+                        即：
+                        <div class="math-display">\[
+a^{\varphi(n)} \prod_{i=1}^{\varphi(n)} r_i \equiv \prod_{i=1}^{\varphi(n)} r_i \pmod n
+\]</div>
+                        由于每个 \(r_i\) 都与 \(n\) 互素，因此它们的乘积也与 \(n\) 互素，因此，可在同余式两边约去 \(\prod_{i=1}^{\varphi(n)} r_i\)，从而得到：
+                        <div class="math-display">\[
+a^{\varphi(n)} \equiv 1 \pmod n
+\]</div>
+                        <p style="text-align: right; margin-top: 10px;">证毕。</p>
+                    </div>
+
+                    <details>
+                        <summary>🔍 探索任务一：欧拉函数 \(\varphi(n)\) 的计算公式</summary>
+                        <div style="padding: 10px 5px;">
+                            <p>我们以一个小整数为例来说明欧拉函数的计算公式如何得来。比如我们求 \(\varphi(12)\)：</p>
+                            <p>首先我们对整数 \(12\) 进行素因数分解，即 \(12 = 2^2 \cdot 3\)。可见，\(1\) 到 \(12\) 中，能被 \(2\) 整除的数一定不与 \(12\) 互素；同时，能被 \(3\) 整除的数也不与 \(12\) 互素。所以，有同学可能直接写出了 \(12 - \frac{12}{2} - \frac{12}{3} = 2\)。很明显这是错的，因为实际上与 \(12\) 互素的数是 \(1, 5, 7, 11\)，一共 \(4\) 个。那么错在哪里了呢？</p>
+                            <p>首先我们研究他减去 \(\frac{12}{2}\) 的含义，即去除了 \(2, 4, 6, 8, 10, 12\) 这 \(6\) 个数；他减去 \(\frac{12}{3}\) 的含义是去除了 \(3, 6, 9, 12\) 这 \(4\) 个数。这样，他就把数字 \(6\) 和 \(12\) 分别都去除了 \(2\) 次，这样我们应该把多去除的补回去，这样就对了。这实际上我们在小学奥数中所学习的<b>容斥原理</b>。</p>
+                            <p>假设 \(n = p_1^{k_1} p_2^{k_2} \dots p_m^{k_m}\)，我们回顾一下上述的计算原理，即：先找到不符合的数，然后去重（利用容斥原理，假设重复的数为 \(t\)），得到所有与目标数 \(n\) 不互素的数的个数 \(s\)，然后用 \(n-s\) 即为 \(\varphi(n)\)。因此，我们得到：</p>
+                            <div class="math-display">\[
+ \sum_{i=1}^m A_i = \sum_{i=1}^m \frac{n}{p_i} 
+\]</div>
+                            <div class="math-display">\[
+ s = \sum_{i=1}^m \frac{n}{p_i} - t 
+\]</div>
+                            <div class="math-display">\[
+ \varphi(n) = n - s 
+\]</div>
+                            <p>因此，求出 \(t\) 是关键了，这让我们想起了集合中求并集的公式（联想叠饺子皮）。我们把这个中间过程留给你们来推导，直接给出 \(\varphi(n)\) 的计算公式：</p>
+                            <div class="math-display" style="font-size: 1.3rem; color: #e74c3c;">\[
+ \varphi(n) = n \prod_{i=1}^m \left(1 - \frac{1}{p_i}\right) 
+\]</div>
+                            <p>对于 \(n=12\)，\(\varphi(12) = 12 \cdot \left(1-\frac{1}{2}\right) \left(1-\frac{1}{3}\right) = 4\)。<br>
+                            对于 \(n=100\)，\(\varphi(100) = 100 \cdot \left(1-\frac{1}{2}\right) \left(1-\frac{1}{5}\right) = 40\)。</p>
+                        </div>
+                    </details>
+
+                    <details>
+                        <summary>🔍 探索任务二：高斯恒等式（Gauss's Identity）</summary>
+                        <div style="padding: 10px 5px;">
+                            <p>我们先给出高斯恒等式：</p>
+                            <div class="math-display" style="font-size: 1.3rem; color: #e74c3c;">\[
+ \sum_{d \mid n} \varphi(d) = n 
+\]</div>
+                            <p>上式表示所有能整除 \(n\) 的正因数 \(d\) 的欧拉函数之和。比如 \(6\)，其正因数包括 \(1, 2, 3, 6\)，而我们发现 \(\varphi(1) + \varphi(2) + \varphi(3) + \varphi(6) = 1 + 1 + 2 + 2 = 6\)，这就是高斯恒等式所表达的含义。</p>
+                            <p>那么如何证明这个问题呢？其实际的证明过程是构造一系列分数，我们写成如下形式：</p>
+                            <div class="math-display">\[
+ \frac{1}{n}, \frac{2}{n}, \dots, \frac{n}{n} 
+\]</div>
+                            <p>为了直观地表示，我们以 \(n=12\) 为例：</p>
+                            <div class="math-display">\[
+ \frac{1}{12}, \frac{2}{12}, \frac{3}{12}, \frac{4}{12}, \frac{5}{12}, \frac{6}{12}, \frac{7}{12}, \frac{8}{12}, \frac{9}{12}, \frac{10}{12}, \frac{11}{12}, \frac{12}{12} 
+\]</div>
+                            <p>我们把这 \(12\) 个分数全部约分为最简分数：</p>
+                            <div class="math-display">\[
+ \frac{1}{12}, \frac{1}{6}, \frac{1}{4}, \frac{1}{3}, \frac{5}{12}, \frac{1}{2}, \frac{7}{12}, \frac{2}{3}, \frac{3}{4}, \frac{5}{6}, \frac{11}{12}, \frac{1}{1} 
+\]</div>
+                            <p>把它们按照分母相同的重新排一下：</p>
+                            <ul style="list-style-type: none; padding-left: 20px;">
+                                <li>分母为 1：\(\frac{1}{1}\)</li>
+                                <li>分母为 2：\(\frac{1}{2}\)</li>
+                                <li>分母为 3：\(\frac{1}{3}, \frac{2}{3}\)</li>
+                                <li>分母为 4：\(\frac{1}{4}, \frac{3}{4}\)</li>
+                                <li>分母为 6：\(\frac{1}{6}, \frac{5}{6}\)</li>
+                                <li>分母为 12：\(\frac{1}{12}, \frac{5}{12}, \frac{7}{12}, \frac{11}{12}\)</li>
+                            </ul>
+                            <p>可见，通过以上处理，我们把所有 \(12\) 的正因数的欧拉函数都逐次统计出来了（如分母为12的最简分数共有4个，即 \(\varphi(12)=4\)），而且总数正好是 \(12\)。</p>
+                        </div>
+                    </details>
+
+                    <div class="exercise-box" style="margin-top: 30px;">
+                        <strong>经典习题（含《初等数论及其应用》补充）：</strong>
+                        <ol>
+                            <li>计算题：求 \(7^{222} \pmod{10}\) 的个位数。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    这里 \(n=10\)，\(a=7\)，\(\gcd(7,10)=1\)。<br>
+                                    计算欧拉函数：\(\varphi(10) = 10 \times (1-\frac{1}{2}) \times (1-\frac{1}{5}) = 4\)。<br>
+                                    根据欧拉定理，\(7^4 \equiv 1 \pmod{10}\)。<br>
+                                    将指数拆分：\(222 = 4 \times 55 + 2\)。<br>
+                                    因此 \(7^{222} = (7^4)^{55} \cdot 7^2 \equiv 1^{55} \cdot 49 \equiv 9 \pmod{10}\)。个位数为 \(9\)。
+                                </div></details>
+                            </li>
+                            <li>【较难证明】设 \(a, b\) 为正整数且 \(\gcd(a, b) = 1\)，证明：\(a^{\varphi(b)} + b^{\varphi(a)} \equiv 1 \pmod{ab}\)。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    因为 \(\gcd(a, b) = 1\)，考虑该式模 \(a\) 和模 \(b\) 的情况。
+                                    <br><b>模 \(a\) 时：</b> \(b^{\varphi(a)} \equiv 1 \pmod a\) （欧拉定理），而 \(a^{\varphi(b)} \equiv 0 \pmod a\)。所以 \(a^{\varphi(b)} + b^{\varphi(a)} \equiv 0 + 1 = 1 \pmod a\)。
+                                    <br><b>模 \(b\) 时：</b> 同理，\(a^{\varphi(b)} \equiv 1 \pmod b\)，而 \(b^{\varphi(a)} \equiv 0 \pmod b\)。所以 \(a^{\varphi(b)} + b^{\varphi(a)} \equiv 1 + 0 = 1 \pmod b\)。
+                                    <br>综上所述，该数能被 \(a\) 和 \(b\) 分别除余 \(1\)。因为 \(\gcd(a, b) = 1\)，由同余性质可知，它被 \(ab\) 除也必定余 \(1\)。证毕。
+                                </div></details>
+                            </li>
+                            <li>【计算补充】计算 \(\varphi(36)\) 的值。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    利用欧拉函数的计算公式：\(\varphi(p^k) = p^k - p^{k-1} = p^{k-1}(p-1)\)。<br>
+                                    将 \(36\) 分解质因数：\(36 = 2^2 \times 3^2\)。<br>
+                                    因为欧拉函数是积性函数，且 \(\gcd(2^2, 3^2)=1\)：<br>
+                                    \(\varphi(36) = \varphi(2^2) \times \varphi(3^2) = (2^2 - 2^1) \times (3^2 - 3^1) = 2 \times 6 = 12\)。
+                                </div></details>
+                            </li>
+                            <li>【计算补充】求 \(2^{1000} \pmod{15}\) 的余数。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    \(n=15\)，\(a=2\)，\(\gcd(2,15)=1\)。<br>
+                                    首先计算欧拉函数：\(\varphi(15) = 15 \times (1-\frac{1}{3}) \times (1-\frac{1}{5}) = 8\)。<br>
+                                    根据欧拉定理：\(2^8 \equiv 1 \pmod{15}\)。<br>
+                                    将指数 \(1000\) 拆分：\(1000 = 8 \times 125\)。<br>
+                                    所以 \(2^{1000} = (2^8)^{125} \equiv 1^{125} \equiv 1 \pmod{15}\)。
+                                </div></details>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 定理6：裴蜀定理 -->
+            <div class="acc-item">
+                <div class="acc-header" onclick="toggleAccordion(this)">6. 裴蜀定理 (Bézout's Identity)</div>
+                <div class="acc-content">
+                    <table class="modal-info-table">
+                        <tr><th>人物</th><td>艾蒂安·裴蜀 (Étienne Bézout)</td></tr>
+                        <tr><th>国家</th><td>法国</td></tr>
+                        <tr><th>时间</th><td>1730—1783</td></tr>
+                        <tr><th>职业</th><td>数学家</td></tr>
+<tr>
+    <th>人物传记</th>
+    <td style="line-height: 1.8; text-align: justify;">
+        <p style="margin-bottom: 8px;"><strong>真理的推广者：艾蒂安·裴蜀</strong>。很多人以为“裴蜀定理”是裴蜀第一个发现的，其实早在1624年，法国法官巴歇就证明了整数版本。但裴蜀的厉害之处在于，他把这个结论<strong>硬核地推广到了多项式领域</strong>，系统创立了代数方程的消元理论，因此后世将这份荣耀冠以了他的名字。</p>
+        <p style="margin-bottom: 8px;">除了搞研究，裴蜀还是一位<strong>顶级的“金牌讲师”</strong>。他长期在法国皇家海军和炮兵学校任教，为了让那些准备上战场的军官们听懂数学，他编写了一套《数学教程》。这套教材因为写得极其通俗、实用，直接<strong>畅销了近一个世纪</strong>，成为了当时法国工程师人手一册的“红宝书”。拿破仑时代的法国大炮之所以能精准命中目标，背后可能就有裴蜀这本书的功劳。</p>
+        <p style="margin-bottom: 0;">可以说，裴蜀不仅用定理解决了 \(ax+by\) 的构造难题，更用教材把数学的种子播撒到了整个法国的工程界。</p>
+    </td>
+</tr>
+                    </table>
+                    
+                    <div class="sub-title">定理内容</div>
+                    <p>设 \(a, b\) 是不全为零的整数，令 \(d = \gcd(a, b)\) (\(d > 0\))，则存在整数 \(x, y\)，使得：</p>
+                    <div class="math-display">\[
+ax + by = d
+\]</div>
+                    <div class="sub-title">重要推论</div>
+                    <ol style="padding-left: 20px;">
+                        <li><span class="theorem-red">\(a, b\) 互素的充要条件是存在整数 \(x, y\) 使得 \(ax + by = 1\)。</span></li>
+                        <li>方程 \(ax + by = c\) 有整数解的充要条件是 \(d \mid c\)。</li>
+                        <li>所有形如 \(ax + by\) 的整数构成的集合，恰好等于 \(d\) 的所有倍数构成的集合，即 \(a\mathbb{Z} + b\mathbb{Z} = d\mathbb{Z}\)。</li>
+                    </ol>
+                    
+                    <div class="sub-title">定理证明（辗转相除法/更相减损术）</div>
+                    <div class="proof-step">
+                        关于裴蜀定理的证明有很多种方法，有些方法采用了<b>良序的概念</b>来证明。<br>
+                        <span style="color:#e67e22; font-weight:bold;">（注：利用良序原理——“最小正整数构造法”的经典证明详见“核心概念”中的【良序原理】弹窗实战演示。）</span><br><br>
+                        这里我们采用更为经典的方法，即辗转相除法。这里还是设 \(a > b\)，且 \(\gcd(a, b) = d\)。我们复现辗转相除法的过程，这样有：
+                        <div class="align-formula">
+                            \(a = b \cdot q_1 + r_1, \quad 0 < r_1 < b\)<br>
+                            \(b = r_1 \cdot q_2 + r_2, \quad 0 < r_2 < r_1\)<br>
+                            \(r_1 = r_2 \cdot q_3 + r_3, \quad 0 < r_3 < r_2\)<br>
+                            \(\dots\)<br>
+                            \(r_{n-2} = r_{n-1} \cdot q_n + r_n, \quad 0 < r_n < r_{n-1}\)<br>
+                            \(r_{n-1} = r_n \cdot q_{n+1}\)
+                        </div>
+                        从辗转相除法复现的式子的最后一步可以得出，\(r_n \mid r_{n-1}\)，由此，可以得出 \(r_n\) 整除以下一系列数，即：
+                        <div class="math-display">\[
+r_{n-1}, r_{n-2}, \dots, r_1, b, a
+\]</div>
+                        所以 \(r_n\) 整除 \(b\) 和 \(a\)，因此 \(r_n\) 是 \(b\) 和 \(a\) 的公因数，所以 \(r_n \mid \gcd(a, b)\)，即 \(r_n \le \gcd(a, b)\)。<br>
+                        另外，如果从辗转相除法第一个式子来看，\(\gcd(a, b) \mid r_1\)，进而整除 \(r_2, \dots, r_n\)，因此 \(\gcd(a, b) \mid r_n\)，即 \(\gcd(a, b) \le r_n\)。<br>
+                        由此可得：\(r_n = \gcd(a, b) = d\)。<br>
+                        而如果 \(r_n = \gcd(a, b) = d\)，则问题便证明了，我们可以采取逐步回代的方式得到不定方程的解。
+                    </div>
+                    
+                    <div class="sub-title">举例说明：求解 \(18x + 7y = 1\)</div>
+                    <div class="proof-step">
+                        利用辗转相除法：
+                        <div class="align-formula">
+                            \(18 = 7 \times (2) + (4)\)<br>
+                            \(7 = 4 \times (1) + (3)\)<br>
+                            \(4 = 3 \times (1) + (1)\)<br>
+                            \(3 = 1 \times (3)\)
+                        </div>
+                        注意以上式子中所构成的商的序列 \(\{2, 1, 1, 3\}\)，它实际上就构成了连分数的表示中的各个数。<br><br>
+                        <b>逐步回代的过程：</b>
+                        <div class="align-formula">
+                            \(1 = 4 - 3 \times 1\)<br>
+                            &nbsp; \(= 4 - (7 - 4 \times 1)\) &nbsp;&nbsp; <span class="substitute-red"># 替换余数 3</span><br>
+                            &nbsp; \(= 2 \times 4 - 7\)<br>
+                            &nbsp; \(= 2 \times (18 - 2 \times 7) - 7\) &nbsp;&nbsp; <span class="substitute-red"># 替换余数 4</span><br>
+                            &nbsp; \(= 2 \times 18 - 5 \times 7\)
+                        </div>
+                        <i>（替换过程与产生余数过程正好相反）</i><br>
+                        从而得出解为 \(x=2, y=-5\)。
+                    </div>
+
+                    <div class="exercise-box">
+                        <strong>经典习题（含《初等数论及其应用》补充）：</strong>
+                        <ol>
+                            <li>计算题：用辗转相除法求整数 \(x, y\) 使得 \(123x + 45y = \gcd(123, 45)\)。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    辗转相除过程：<br>
+                                    \(123 = 2 \times 45 + 33\)<br>
+                                    \(45 = 1 \times 33 + 12\)<br>
+                                    \(33 = 2 \times 12 + 9\)<br>
+                                    \(12 = 1 \times 9 + 3\)<br>
+                                    \(9 = 3 \times 3\)<br>
+                                    所以 \(\gcd(123, 45) = 3\)。<br>
+                                    回代：<br>
+                                    \(3 = 12 - 9 = 12 - (33 - 2 \times 12) = 3 \times 12 - 33 = 3 \times (45 - 33) - 33 = 3 \times 45 - 4 \times 33 = 3 \times 45 - 4 \times (123 - 2 \times 45) = -4 \times 123 + 11 \times 45\)。<br>
+                                    解得 \(x = -4, y = 11\)。
+                                </div></details>
+                            </li>
+                            <li>【较难证明】求证：对于整数 \(a, b, c\)（不全为 \(0\)），方程 \(ax + by + cz = d\) 有整数解的充要条件是 \(\gcd(a, b, c) \mid d\)。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    <b>必要性（\(\Rightarrow\)）：</b> 若存在整数解 \((x_0, y_0, z_0)\)，设 \(g = \gcd(a, b, c)\)。则 \(g \mid a, g \mid b, g \mid c\)，显然 \(g \mid (ax_0 + by_0 + cz_0) = d\)。
+                                    <br><b>充分性（\(\Leftarrow\)）：</b> 设 \(d_1 = \gcd(a, b)\)。由二元裴蜀定理，存在整数 \(u, v\) 使得 \(au + bv = d_1\)。原方程化为求 \(d_1 t + cz = d\) 的整数解。
+                                    <br>因为 \(\gcd(d_1, c) = \gcd(\gcd(a,b), c) = \gcd(a, b, c)\)。设此值为 \(g\)，已知 \(g \mid d\)。
+                                    <br>由二元裴蜀定理，关于 \(t, z\) 的方程 \(d_1 t + cz = d\) 存在整数解的充要条件正是 \(\gcd(d_1, c) \mid d\)，即 \(g \mid d\)。因此有解 \((t_0, z_0)\)。再代回 \(au + bv = d_1\) 即可构造出原方程的解 \((ut_0, vt_0, z_0)\)。证毕。
+                                </div></details>
+                            </li>
+                            <li>【简单证明补充】证明：如果 \(a \mid bc\) 且 \(\gcd(a, b) = 1\)，那么 \(a \mid c\)。（欧几里得引理）
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    因为 \(\gcd(a, b) = 1\)，根据裴蜀定理，存在整数 \(x, y\) 使得 \(ax + by = 1\)。<br>
+                                    等式两边同乘 \(c\)，得到 \(acx + bcy = c\)。<br>
+                                    因为 \(a \mid acx\)（显然），且已知 \(a \mid bc\)，所以 \(a \mid bcy\)。<br>
+                                    因此，\(a\) 整除等式左边的和，即 \(a \mid (acx + bcy)\)。<br>
+                                    所以 \(a \mid c\)。证毕。
+                                </div></details>
+                            </li>
+                            <li>【计算补充】求方程 \(15x + 28y = 1\) 的一组整数解。
+                                <details><summary>点击查看答案</summary><div class="solution-text">
+                                    通过观察或辗转相除法寻找：<br>
+                                    \(28 = 1 \times 15 + 13\)<br>
+                                    \(15 = 1 \times 13 + 2\)<br>
+                                    \(13 = 6 \times 2 + 1\)<br>
+                                    回代：\(1 = 13 - 6 \times 2 = 13 - 6 \times (15 - 13) = 7 \times 13 - 6 \times 15 = 7 \times (28 - 15) - 6 \times 15 = 7 \times 28 - 13 \times 15\)。<br>
+                                    所以一组解为 \(x = -13, y = 7\)。（也可直接看出 \(15 \times 15 - 28 \times 8 = 225 - 224 = 1\)，即 \(x=15, y=-8\)）。
+                                </div></details>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- ================= 脚本 ================= -->
+    <script>
+        window.addEventListener('load', () => {
+            if (window.MathJax) MathJax.typesetPromise().catch(err => console.log(err.message));
+        });
+
+        // 手风琴折叠展开逻辑
+        function toggleAccordion(header) {
+            header.classList.toggle('active');
+            let content = header.nextElementSibling;
+            if (content.style.display === "block") {
+                content.style.display = "none";
+            } else {
+                content.style.display = "block";
+                if (window.MathJax) MathJax.typesetPromise([content]).catch(err => console.log(err.message));
+            }
+        }
+    </script>
+</body>
+</html>
